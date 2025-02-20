@@ -1,18 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import Image from "next/image";
 
-export default function MyCollection() {
-  const [cards, setCards] = useState([]);
+const fetcher = (url) => fetch(url).then((res) => res.json());
 
-  useEffect(() => {
-    async function fetchCards() {
-      const response = await fetch("/api/cards");
-      const data = await response.json();
-      setCards(data);
-    }
-    fetchCards();
-  }, []);
+export default function MyCollection() {
+  const { data: cards, error } = useSWR("/api/cards", fetcher, {
+    refreshInterval: 5000,
+  });
+
+  if (error) return <div>Failed to load</div>;
+  if (!cards) return <div>Loading...</div>;
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -39,8 +37,14 @@ export default function MyCollection() {
                   <span className="font-bold">Rarity:</span> {card.rarity}
                 </p>
                 <p>
-                  <span className="font-bold">Price:</span> ${card.price}
+                  <span className="font-bold">Normal Price:</span> ${card.price}
                 </p>
+                {card.reverseHoloAvg1 > 0 && (
+                  <p>
+                    <span className="font-bold">Reverse Holofoil Price:</span> $
+                    {card.reverseHoloAvg1}
+                  </p>
+                )}
               </div>
             ))
           )}

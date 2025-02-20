@@ -14,9 +14,10 @@ datasource db {
 }
 
 model Card {
-  id        String @id @default(uuid())
-  name      String
-  rarity    String
-  price     Float
-  imageUrl  String
+  id                    String @id @default(uuid())
+  name                  String
+  rarity                String
+  price                 Float @default(0.0)
+  reverseHoloAvg1       Float @default(0.0)
+  imageUrl              String
 }

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Card" ADD COLUMN     "reverseHolofoilPrice" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+ALTER COLUMN "price" SET DEFAULT 0.0;

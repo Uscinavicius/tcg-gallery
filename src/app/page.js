@@ -15,6 +15,7 @@ export default function Home() {
       name: card.name,
       rarity: card.rarity,
       price: card.cardmarket.prices.averageSellPrice,
+      reverseHoloAvg1: card.cardmarket.prices.reverseHoloAvg1,
       imageUrl: card.images.small,
     };
     await fetch("/api/addCard", {
@@ -49,6 +50,15 @@ export default function Home() {
                 <span className="font-bold">Price:</span> $
                 {card.cardmarket.prices.averageSellPrice}
               </p>
+              {card.cardmarket.prices.reverseHoloAvg1 > 0 ? (
+                <p>
+                  <span className="font-bold">Reverse Holofoil Price:</span> $
+                  {card.cardmarket.prices.reverseHoloAvg1}
+                </p>
+              ) : (
+                <p className="text-red-500">No Reverse Holo
+                </p>
+              )}
               <button
                 onClick={() => handleAddToCollection(card)}
                 className="bg-blue-500 text-white p-2 rounded-md mt-2"
