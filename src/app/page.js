@@ -1,14 +1,24 @@
 "use client";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import Image from "next/image";
-import { sv7, carddata } from "../const";
+
+const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function Home() {
-  const [cards, setCards] = useState([]);
+  const { data, error } = useSWR(
+    `https://api.pokemontcg.io/v2/cards?q=set.id:sv7`,
+    fetcher,
+    {
+      refreshInterval: 0, // Disable automatic revalidation
+      revalidateOnFocus: false, // Disable revalidation on focus
+      revalidateOnReconnect: false, // Disable revalidation on reconnect
+    }
+  );
 
-  useEffect(() => {
-    setCards(carddata.data);
-  }, []);
+  if (error) return <div>Failed to load</div>;
+  if (!data) return <div>Loading...</div>;
+
+  const cards = data.data;
 
   const handleAddToCollection = async (card) => {
     const newCard = {
@@ -56,8 +66,7 @@ export default function Home() {
                   {card.cardmarket.prices.reverseHoloAvg1}
                 </p>
               ) : (
-                <p className="text-red-500">No Reverse Holo
-                </p>
+                <p className="text-red-500">No Reverse Holo</p>
               )}
               <button
                 onClick={() => handleAddToCollection(card)}
