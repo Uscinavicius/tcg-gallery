@@ -1,17 +1,41 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  const { name, rarity, price, reverseHoloAvg1, imageUrl } = await req.json();
   try {
+    const { name, rarity, price, reverseHoloAvg1, imageUrl } = await req.json();
+
+    // Check if card already exists
+    const existingCard = await prisma.card.findFirst({
+      where: { name },
+    });
+
+    if (existingCard) {
+      return NextResponse.json(
+        { error: "Card already exists" },
+        { status: 409 }
+      );
+    }
+
+    // Create new card
     const newCard = await prisma.card.create({
-      data: { name, rarity, price, reverseHoloAvg1, imageUrl },
+      data: {
+        name,
+        rarity,
+        price,
+        reverseHoloAvg1,
+        imageUrl,
+        hasNormal: false,
+        hasHolo: false,
+      },
     });
-    return new Response(JSON.stringify(newCard), { status: 201 });
+
+    return NextResponse.json(newCard, { status: 201 });
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Error adding card" }), {
-      status: 500,
-    });
+    console.error("Error adding card:", error);
+    return NextResponse.json(
+      { error: `Error adding card: ${error.message}` },
+      { status: 500 }
+    );
   }
 }
