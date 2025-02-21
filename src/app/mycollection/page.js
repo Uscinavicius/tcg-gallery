@@ -65,10 +65,21 @@ export default function MyCollection() {
   if (error) return <div>Failed to load</div>;
   if (!cards) return <div>Loading...</div>;
 
-  const totalCards = cards.length;
-  const cardsOwned = cards.filter(
-    (card) => card.hasNormal || card.hasHolo
-  ).length;
+  // Calculate total possible cards (counting holo variants)
+  const totalPossibleCards = cards.reduce((total, card) => {
+    return total + (card.reverseHoloAvg1 > 0 ? 2 : 1); // Count as 2 if has holo variant, 1 if not
+  }, 0);
+
+  // Calculate owned cards
+  const cardsOwned = cards.reduce((total, card) => {
+    if (card.reverseHoloAvg1 > 0) {
+      // Card has a holo variant
+      return total + (card.hasNormal ? 1 : 0) + (card.hasHolo ? 1 : 0);
+    } else {
+      // Card has no holo variant
+      return total + (card.hasNormal ? 1 : 0);
+    }
+  }, 0);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -90,7 +101,8 @@ export default function MyCollection() {
         <div className="w-full">
           <h1 className="text-4xl font-bold">My Pokemon TCG Collection</h1>
           <p className="text-xl mt-2">
-            Collection Progress: {cardsOwned} / {totalCards} cards
+            Collection Progress: {cardsOwned} / {totalPossibleCards} variants
+            collected
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-8">
@@ -100,8 +112,17 @@ export default function MyCollection() {
             cards.map((card) => (
               <div
                 key={card.id}
-                className={`flex flex-col border border-gray-200 rounded-md w-fit p-4 
-                  ${card.hasNormal && card.hasHolo ? "border-green-700" : ""}`}
+                className={`flex flex-col border-2 rounded-md w-fit p-4 ${
+                  card.reverseHoloAvg1 > 0
+                    ? card.hasNormal && card.hasHolo
+                      ? "border-green-500" // Has both variants when needed
+                      : card.hasNormal || card.hasHolo
+                      ? "border-yellow-500" // Has one variant but needs both
+                      : "border-gray-200" // Has neither variant
+                    : card.hasNormal
+                    ? "border-green-500" // Has normal version when that's all that's needed
+                    : "border-gray-200" // Doesn't have normal version
+                }`}
               >
                 <div className="text-sm font-bold text-gray-500 mb-2">
                   #{card.number}
@@ -142,21 +163,23 @@ export default function MyCollection() {
                     />
                     <span>Have Normal</span>
                   </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={card.hasHolo || false}
-                      onChange={(e) =>
-                        handleCollectionUpdate(
-                          card.id,
-                          "holo",
-                          e.target.checked
-                        )
-                      }
-                      className="w-4 h-4"
-                    />
-                    <span>Have Holo</span>
-                  </label>
+                  {card.reverseHoloAvg1 > 0 && (
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={card.hasHolo || false}
+                        onChange={(e) =>
+                          handleCollectionUpdate(
+                            card.id,
+                            "holo",
+                            e.target.checked
+                          )
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span>Have Holo</span>
+                    </label>
+                  )}
                 </div>
               </div>
             ))

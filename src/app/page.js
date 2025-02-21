@@ -98,20 +98,27 @@ export default function Home() {
                 <span className="font-bold">Rarity:</span> {card.rarity}
               </p>
               <p>
-                <span className="font-bold">Price:</span> $
+                <span className="font-bold">Normal Price:</span> $
                 {card.cardmarket.prices.averageSellPrice}
               </p>
               {card.cardmarket.prices.reverseHoloAvg1 > 0 ? (
-                <p>
-                  <span className="font-bold">Reverse Holofoil Price:</span> $
-                  {card.cardmarket.prices.reverseHoloAvg1}
-                </p>
+                <div>
+                  <p>
+                    <span className="font-bold">Reverse Holofoil Price:</span> $
+                    {card.cardmarket.prices.reverseHoloAvg1}
+                  </p>
+                  <p className="text-sm text-indigo-600 mt-1">
+                    Available in Holo variant
+                  </p>
+                </div>
               ) : (
-                <p className="text-red-500">No Reverse Holo</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  No Holo variant available
+                </p>
               )}
               <button
                 onClick={() => handleAddToCollection(card)}
-                className="bg-blue-500 text-white p-2 rounded-md mt-2"
+                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md mt-2 transition-colors"
               >
                 Add to Collection
               </button>

@@ -19,6 +19,7 @@ export async function POST(req) {
     }
 
     // Create new card
+    // If reverseHoloAvg1 is 0, it means the card has no holo variant
     const newCard = await prisma.card.create({
       data: {
         name,
@@ -28,7 +29,7 @@ export async function POST(req) {
         reverseHoloAvg1,
         imageUrl,
         hasNormal: false,
-        hasHolo: false,
+        hasHolo: reverseHoloAvg1 === 0 ? true : false, // Set hasHolo to true if card has no holo variant
       },
     });
 
