@@ -8,7 +8,7 @@ export async function POST(req) {
 
     // Check if card already exists
     const existingCard = await prisma.card.findFirst({
-      where: { name },
+      where: { number },
     });
 
     if (existingCard) {

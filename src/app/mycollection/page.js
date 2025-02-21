@@ -18,16 +18,33 @@ export default function MyCollection() {
 
   const handleCollectionUpdate = async (id, field, value) => {
     try {
-      const card = cards.find((c) => c.id === id);
-      const updatedData = {
-        hasNormal: field === "normal" ? value : card.hasNormal,
-        hasHolo: field === "holo" ? value : card.hasHolo,
-      };
+      // Optimistically update the UI
+      const optimisticData = cards.map((card) => {
+        if (card.id === id) {
+          return {
+            ...card,
+            hasNormal: field === "normal" ? value : card.hasNormal,
+            hasHolo: field === "holo" ? value : card.hasHolo,
+          };
+        }
+        return card;
+      });
 
+      // Update the local data immediately
+      mutate(optimisticData, false);
+
+      // Send the request to the server
       const response = await fetch(`/api/updateCard/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify({
+          hasNormal:
+            field === "normal"
+              ? value
+              : cards.find((c) => c.id === id).hasNormal,
+          hasHolo:
+            field === "holo" ? value : cards.find((c) => c.id === id).hasHolo,
+        }),
       });
 
       if (!response.ok) {
@@ -35,9 +52,12 @@ export default function MyCollection() {
         throw new Error(errorData.error || "Failed to update card");
       }
 
-      await mutate();
+      // Revalidate the data
+      mutate();
     } catch (error) {
       console.error("Error updating card:", error);
+      // Revert the optimistic update on error
+      mutate();
       alert("Failed to update card: " + error.message);
     }
   };
@@ -80,9 +100,8 @@ export default function MyCollection() {
             cards.map((card) => (
               <div
                 key={card.id}
-                className={`flex flex-col border border-gray-200 rounded-md w-fit p-4 ${
-                  card.hasNormal && card.hasHolo ? "bg-green-700" : ""
-                }`}
+                className={`flex flex-col border border-gray-200 rounded-md w-fit p-4 
+                  ${card.hasNormal && card.hasHolo ? "border-green-700" : ""}`}
               >
                 <div className="text-sm font-bold text-gray-500 mb-2">
                   #{card.number}
