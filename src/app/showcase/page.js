@@ -47,44 +47,35 @@ export default function ShowcasePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="w-full flex justify-between items-center p-4 bg-gray-800 text-white fixed top-0 z-50">
-        <Link href="/" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-          Home
-        </Link>
-        <div className="flex gap-4">
-          <Link href="/admin" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-            Admin
-          </Link>
-          <Link href="/showcase" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-            Showcase
-          </Link>
-          <Link href="/mycollection" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-            My Collection
-          </Link>
-        </div>
-      </nav>
-      
-      <main className="flex flex-col gap-8 items-center sm:items-start mt-20 p-8">
+      <main className="flex flex-col gap-8 items-center sm:items-start p-8">
         <div className="w-full">
           <h1 className="text-4xl font-bold mb-4">Collection Showcase</h1>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-100 p-4 rounded-lg">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-700">Collection Progress</h2>
+              <h2 className="text-xl font-bold text-gray-700">
+                Collection Progress
+              </h2>
               <p className="text-3xl font-bold text-green-600">
                 {cardsOwned} / {totalPossibleCards}
               </p>
-              <p className="text-gray-600">({((cardsOwned / totalPossibleCards) * 100).toFixed(1)}%)</p>
+              <p className="text-gray-600">
+                ({((cardsOwned / totalPossibleCards) * 100).toFixed(1)}%)
+              </p>
             </div>
             <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-700">Collection Value</h2>
+              <h2 className="text-xl font-bold text-gray-700">
+                Collection Value
+              </h2>
               <p className="text-3xl font-bold text-blue-600">
                 ${collectionValue.toFixed(2)}
               </p>
             </div>
             <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-700">Filter Collection</h2>
-              <select 
-                value={filter} 
+              <h2 className="text-xl font-bold text-gray-700">
+                Filter Collection
+              </h2>
+              <select
+                value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="mt-2 px-4 py-2 border rounded-md"
               >
@@ -100,7 +91,7 @@ export default function ShowcasePage() {
           {filteredCards.map((card) => (
             <div
               key={card.id}
-              className={`flex flex-col border-2 rounded-md w-fit p-4 ${
+              className={`flex flex-col border-2 rounded-md p-4 w-[250px] h-auto ${
                 card.reverseHoloAvg1 > 0
                   ? card.hasNormal && card.hasHolo
                     ? "border-green-500"
@@ -112,31 +103,48 @@ export default function ShowcasePage() {
                   : "border-gray-200"
               }`}
             >
-              <div className="text-sm font-bold text-gray-500 mb-2">#{card.number}</div>
-              <Image
-                src={card.imageUrl}
-                alt={card.name}
-                width={200}
-                height={279}
-                className="pb-4"
-              />
-              <h2 className="text-lg font-bold">{card.name}</h2>
-              <p><span className="font-bold">Rarity:</span> {card.rarity}</p>
-              <p><span className="font-bold">Normal Price:</span> ${card.price}</p>
-              {card.reverseHoloAvg1 > 0 && (
+              <div>
+                <div className="text-sm font-bold text-gray-500 mb-2">
+                  #{card.number}
+                </div>
+                <Image
+                  src={card.imageUrl}
+                  alt={card.name}
+                  width={200}
+                  height={279}
+                  className="mx-auto"
+                />
+                <h2 className="text-lg font-bold mt-2 truncate">{card.name}</h2>
                 <p>
-                  <span className="font-bold">Reverse Holofoil Price:</span> ${card.reverseHoloAvg1}
+                  <span className="font-bold">Rarity:</span> {card.rarity}
                 </p>
-              )}
-              <div className="flex flex-col gap-2 mt-4">
+                <p>
+                  <span className="font-bold">Normal Price:</span> ${card.price}
+                </p>
+                {card.reverseHoloAvg1 > 0 && (
+                  <p>
+                    <span className="font-bold">Reverse Holofoil Price:</span> $
+                    {card.reverseHoloAvg1}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 mt-auto pt-4">
                 <p className="text-sm">
-                  {card.hasNormal && <span className="text-green-600">✓ Have Normal</span>}
-                  {!card.hasNormal && <span className="text-red-600">✗ Missing Normal</span>}
+                  {card.hasNormal && (
+                    <span className="text-green-600">✓ Have Normal</span>
+                  )}
+                  {!card.hasNormal && (
+                    <span className="text-red-600">✗ Missing Normal</span>
+                  )}
                 </p>
                 {card.reverseHoloAvg1 > 0 && (
                   <p className="text-sm">
-                    {card.hasHolo && <span className="text-green-600">✓ Have Holo</span>}
-                    {!card.hasHolo && <span className="text-red-600">✗ Missing Holo</span>}
+                    {card.hasHolo && (
+                      <span className="text-green-600">✓ Have Holo</span>
+                    )}
+                    {!card.hasHolo && (
+                      <span className="text-red-600">✗ Missing Holo</span>
+                    )}
                   </p>
                 )}
               </div>

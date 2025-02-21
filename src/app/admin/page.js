@@ -31,8 +31,12 @@ export default function AdminPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          hasNormal: field === "normal" ? value : cards.find((c) => c.id === id).hasNormal,
-          hasHolo: field === "holo" ? value : cards.find((c) => c.id === id).hasHolo,
+          hasNormal:
+            field === "normal"
+              ? value
+              : cards.find((c) => c.id === id).hasNormal,
+          hasHolo:
+            field === "holo" ? value : cards.find((c) => c.id === id).hasHolo,
         }),
       });
 
@@ -53,7 +57,7 @@ export default function AdminPage() {
       const response = await fetch("/api/updatePrices", {
         method: "POST",
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to update prices");
       }
@@ -82,29 +86,12 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="w-full flex justify-between items-center p-4 bg-gray-800 text-white fixed top-0 z-50">
-        <Link href="/" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-          Home
-        </Link>
-        <div className="flex gap-4">
-          <Link href="/admin" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-            Admin
-          </Link>
-          <Link href="/showcase" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-            Showcase
-          </Link>
-          <Link href="/mycollection" className="text-2xl font-bold hover:text-gray-300 transition-colors">
-            My Collection
-          </Link>
-        </div>
-      </nav>
-      
-      <main className="flex flex-col gap-8 items-center sm:items-start mt-20 p-8">
+      <main className="flex flex-col gap-8 items-center sm:items-start p-8">
         <div className="w-full flex justify-between items-center">
           <h1 className="text-4xl font-bold">Admin Dashboard</h1>
           <div className="flex gap-4">
-            <select 
-              value={filter} 
+            <select
+              value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="px-4 py-2 border rounded-md"
             >
@@ -128,7 +115,7 @@ export default function AdminPage() {
           {filteredCards.map((card) => (
             <div
               key={card.id}
-              className={`flex flex-col border-2 rounded-md w-fit p-4 ${
+              className={`flex flex-col border-2 rounded-md p-4 w-[250px] h-auto ${
                 card.reverseHoloAvg1 > 0
                   ? card.hasNormal && card.hasHolo
                     ? "border-green-500"
@@ -140,28 +127,43 @@ export default function AdminPage() {
                   : "border-gray-200"
               }`}
             >
-              <div className="text-sm font-bold text-gray-500 mb-2">#{card.number}</div>
-              <Image
-                src={card.imageUrl}
-                alt={card.name}
-                width={200}
-                height={279}
-                className="pb-4"
-              />
-              <h2 className="text-lg font-bold">{card.name}</h2>
-              <p><span className="font-bold">Rarity:</span> {card.rarity}</p>
-              <p><span className="font-bold">Normal Price:</span> ${card.price}</p>
-              {card.reverseHoloAvg1 > 0 && (
+              <div>
+                <div className="text-sm font-bold text-gray-500 mb-2">
+                  #{card.number}
+                </div>
+                <Image
+                  src={card.imageUrl}
+                  alt={card.name}
+                  width={200}
+                  height={279}
+                  className="mx-auto"
+                />
+                <h2 className="text-lg font-bold mt-2 truncate">{card.name}</h2>
                 <p>
-                  <span className="font-bold">Reverse Holofoil Price:</span> ${card.reverseHoloAvg1}
+                  <span className="font-bold">Rarity:</span> {card.rarity}
                 </p>
-              )}
-              <div className="flex flex-col gap-2 mt-4">
+                <p>
+                  <span className="font-bold">Normal Price:</span> ${card.price}
+                </p>
+                {card.reverseHoloAvg1 > 0 && (
+                  <p>
+                    <span className="font-bold">Reverse Holofoil Price:</span> $
+                    {card.reverseHoloAvg1}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 mt-auto pt-4">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={card.hasNormal || false}
-                    onChange={(e) => handleCollectionUpdate(card.id, "normal", e.target.checked)}
+                    onChange={(e) =>
+                      handleCollectionUpdate(
+                        card.id,
+                        "normal",
+                        e.target.checked
+                      )
+                    }
                     className="w-4 h-4"
                   />
                   <span>Have Normal</span>
@@ -171,7 +173,13 @@ export default function AdminPage() {
                     <input
                       type="checkbox"
                       checked={card.hasHolo || false}
-                      onChange={(e) => handleCollectionUpdate(card.id, "holo", e.target.checked)}
+                      onChange={(e) =>
+                        handleCollectionUpdate(
+                          card.id,
+                          "holo",
+                          e.target.checked
+                        )
+                      }
                       className="w-4 h-4"
                     />
                     <span>Have Holo</span>
