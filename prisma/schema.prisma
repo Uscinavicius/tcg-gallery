@@ -23,4 +23,5 @@ model Card {
   imageUrl              String
   hasNormal             Boolean @default(false)
   hasHolo               Boolean @default(false)
+  lastPriceUpdate       DateTime @default(now())
 }
