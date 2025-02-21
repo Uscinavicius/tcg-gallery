@@ -18,21 +18,15 @@ export default function MyCollection() {
 
   const handleCollectionUpdate = async (id, field, value) => {
     try {
-      console.log("Updating card:", { id, field, value }); // Debug log
-
       const card = cards.find((c) => c.id === id);
       const updatedData = {
         hasNormal: field === "normal" ? value : card.hasNormal,
         hasHolo: field === "holo" ? value : card.hasHolo,
       };
 
-      console.log("Request data:", updatedData); // Debug log
-
       const response = await fetch(`/api/updateCard/${id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
       });
 
@@ -41,17 +35,20 @@ export default function MyCollection() {
         throw new Error(errorData.error || "Failed to update card");
       }
 
-      // Update the local data immediately
       await mutate();
     } catch (error) {
       console.error("Error updating card:", error);
-      // You might want to add error handling UI here
       alert("Failed to update card: " + error.message);
     }
   };
 
   if (error) return <div>Failed to load</div>;
   if (!cards) return <div>Loading...</div>;
+
+  const totalCards = cards.length;
+  const cardsOwned = cards.filter(
+    (card) => card.hasNormal || card.hasHolo
+  ).length;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -70,7 +67,12 @@ export default function MyCollection() {
         </Link>
       </nav>
       <main className="flex flex-col gap-8 items-center sm:items-start mt-20 p-8">
-        <h1 className="text-4xl font-bold">My Pokemon TCG Collection</h1>
+        <div className="w-full">
+          <h1 className="text-4xl font-bold">My Pokemon TCG Collection</h1>
+          <p className="text-xl mt-2">
+            Collection Progress: {cardsOwned} / {totalCards} cards
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-8">
           {cards.length === 0 ? (
             <p className="text-lg font-bold">No cards in collection</p>
@@ -78,8 +80,13 @@ export default function MyCollection() {
             cards.map((card) => (
               <div
                 key={card.id}
-                className="flex flex-col border border-gray-200 rounded-md w-fit p-4"
+                className={`flex flex-col border border-gray-200 rounded-md w-fit p-4 ${
+                  card.hasNormal && card.hasHolo ? "bg-green-700" : ""
+                }`}
               >
+                <div className="text-sm font-bold text-gray-500 mb-2">
+                  #{card.number}
+                </div>
                 <Image
                   src={card.imageUrl}
                   alt={card.name}

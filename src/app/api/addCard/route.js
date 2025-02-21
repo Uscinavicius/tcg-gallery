@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { name, rarity, price, reverseHoloAvg1, imageUrl } = await req.json();
+    const { name, rarity, price, reverseHoloAvg1, imageUrl, number } =
+      await req.json();
 
     // Check if card already exists
     const existingCard = await prisma.card.findFirst({
@@ -21,6 +22,7 @@ export async function POST(req) {
     const newCard = await prisma.card.create({
       data: {
         name,
+        number,
         rarity,
         price,
         reverseHoloAvg1,

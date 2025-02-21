@@ -5,10 +5,18 @@ export async function GET() {
   try {
     const cards = await prisma.card.findMany({
       orderBy: {
-        name: "asc",
+        number: "asc",
       },
     });
-    return NextResponse.json(cards);
+
+    // Sort cards by number, handling numeric sorting for string numbers
+    const sortedCards = cards.sort((a, b) => {
+      const numA = parseInt(a.number);
+      const numB = parseInt(b.number);
+      return numA - numB;
+    });
+
+    return NextResponse.json(sortedCards);
   } catch (error) {
     console.error("Error fetching cards:", error);
     return NextResponse.json(

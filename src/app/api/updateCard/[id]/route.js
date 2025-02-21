@@ -1,13 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, context) {
   try {
-    const body = await request.json();
-    const { hasNormal, hasHolo } = body;
-    const cardId = params.id;
+    const { id } = await context.params;
+    const { hasNormal, hasHolo } = await request.json();
 
-    console.log("Updating card:", { cardId, hasNormal, hasHolo });
+    console.log("Updating card:", { id, hasNormal, hasHolo });
 
     // Validate input
     if (typeof hasNormal !== "boolean" || typeof hasHolo !== "boolean") {
@@ -19,7 +18,7 @@ export async function PATCH(request, { params }) {
 
     const updatedCard = await prisma.card.update({
       where: {
-        id: cardId,
+        id: id,
       },
       data: {
         hasNormal,
@@ -32,7 +31,6 @@ export async function PATCH(request, { params }) {
     console.error("Error updating card:", {
       message: error.message,
       code: error.code,
-      params,
     });
 
     return NextResponse.json(

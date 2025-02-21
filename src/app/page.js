@@ -24,6 +24,7 @@ export default function Home() {
   const handleAddToCollection = async (card) => {
     const newCard = {
       name: card.name,
+      number: card.number,
       rarity: card.rarity,
       price: card.cardmarket.prices.averageSellPrice,
       reverseHoloAvg1: card.cardmarket.prices.reverseHoloAvg1,
@@ -40,6 +41,7 @@ export default function Home() {
     for (const card of cards) {
       const newCard = {
         name: card.name,
+        number: card.number,
         rarity: card.rarity,
         price: card.cardmarket.prices.averageSellPrice,
         reverseHoloAvg1: card.cardmarket.prices.reverseHoloAvg1,
@@ -56,10 +58,16 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <nav className="w-full flex justify-between items-center p-4 bg-gray-800 text-white fixed top-0 z-50">
-        <Link href="/" className="text-2xl font-bold hover:text-gray-300 transition-colors">
+        <Link
+          href="/"
+          className="text-2xl font-bold hover:text-gray-300 transition-colors"
+        >
           Home
         </Link>
-        <Link href="/mycollection" className="text-2xl font-bold hover:text-gray-300 transition-colors">
+        <Link
+          href="/mycollection"
+          className="text-2xl font-bold hover:text-gray-300 transition-colors"
+        >
           My Collection
         </Link>
       </nav>
@@ -85,6 +93,7 @@ export default function Home() {
                 className="pb-4"
               />
               <h2 className="text-lg font-bold">{card.name}</h2>
+              <p className="text-sm text-gray-600">#{card.number}</p>
               <p>
                 <span className="font-bold">Rarity:</span> {card.rarity}
               </p>
