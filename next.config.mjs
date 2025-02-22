@@ -1,15 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
-    images: {
-        domains: ['images.pokemontcg.io'],
-    },
-    webpack: (config, { isServer }) => {
-        if (!isServer) {
-        config.resolve.fallback.fs = false;
-        }
-        return config;
-    },
+  reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.pokemontcg.io",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  }
 };
 
 export default nextConfig;

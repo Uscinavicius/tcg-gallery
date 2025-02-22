@@ -16,7 +16,7 @@ datasource db {
 model Card {
   id                    String  @id @default(uuid())
   name                  String
-  number                String
+  number                String  @unique
   rarity                String
   price                 Float   @default(0.0)
   reverseHoloAvg1       Float   @default(0.0)
@@ -24,4 +24,5 @@ model Card {
   hasNormal             Boolean @default(false)
   hasHolo               Boolean @default(false)
   lastPriceUpdate       DateTime @default(now())
+  packNumber            Int?
 }

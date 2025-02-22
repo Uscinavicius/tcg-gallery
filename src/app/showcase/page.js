@@ -77,11 +77,11 @@ export default function ShowcasePage() {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="mt-2 px-4 py-2 border rounded-md"
+                className="mt-2 px-4 py-2 border rounded-md bg-black"
               >
-                <option value="all">All Cards</option>
-                <option value="owned">Owned Cards</option>
-                <option value="needed">Needed Cards</option>
+                <option value="all" className="bg-black">All Cards</option>
+                <option value="owned" className="bg-black">Owned Cards</option>
+                <option value="needed" className="bg-black">Needed Cards</option>
               </select>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function ShowcasePage() {
                   ? card.hasNormal && card.hasHolo
                     ? "border-green-500"
                     : card.hasNormal || card.hasHolo
-                    ? "border-yellow-500"
+                    ? "border-blue-500"
                     : "border-gray-200"
                   : card.hasNormal
                   ? "border-green-500"

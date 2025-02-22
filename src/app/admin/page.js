@@ -9,6 +9,7 @@ const fetcher = (url) => fetch(url).then((res) => res.json());
 export default function AdminPage() {
   const [filter, setFilter] = useState("all"); // "all", "owned", "needed"
   const [updating, setUpdating] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const { data: cards, error, mutate } = useSWR("/api/cards", fetcher);
 
   const handleCollectionUpdate = async (id, field, value) => {
@@ -20,6 +21,7 @@ export default function AdminPage() {
             ...card,
             hasNormal: field === "normal" ? value : card.hasNormal,
             hasHolo: field === "holo" ? value : card.hasHolo,
+            packNumber: field === "packNumber" ? value : card.packNumber,
           };
         }
         return card;
@@ -37,6 +39,10 @@ export default function AdminPage() {
               : cards.find((c) => c.id === id).hasNormal,
           hasHolo:
             field === "holo" ? value : cards.find((c) => c.id === id).hasHolo,
+          packNumber:
+            field === "packNumber"
+              ? value
+              : cards.find((c) => c.id === id).packNumber,
         }),
       });
 
@@ -54,18 +60,28 @@ export default function AdminPage() {
   const updatePrices = async () => {
     try {
       setUpdating(true);
+      console.log("Starting price update request...");
+
       const response = await fetch("/api/updatePrices", {
         method: "POST",
       });
 
+      const data = await response.json();
+      console.log("Price update response:", data);
+
       if (!response.ok) {
-        throw new Error("Failed to update prices");
+        throw new Error(data.error || "Failed to update prices");
       }
 
       await mutate(); // Refresh the card data
+      console.log("Price update successful:", data);
       alert("Prices updated successfully!");
     } catch (error) {
-      console.error("Error updating prices:", error);
+      console.error("Error updating prices:", {
+        message: error.message,
+        response: error.response,
+        stack: error.stack,
+      });
       alert("Failed to update prices: " + error.message);
     } finally {
       setUpdating(false);
@@ -76,28 +92,51 @@ export default function AdminPage() {
   if (!cards) return <div>Loading...</div>;
 
   const filteredCards = cards.filter((card) => {
-    if (filter === "owned") {
-      return card.hasNormal || (card.reverseHoloAvg1 > 0 && card.hasHolo);
-    } else if (filter === "needed") {
-      return !card.hasNormal || (card.reverseHoloAvg1 > 0 && !card.hasHolo);
-    }
-    return true;
+    // First apply collection filter
+    const collectionFiltered =
+      filter === "owned"
+        ? card.hasNormal || (card.reverseHoloAvg1 > 0 && card.hasHolo)
+        : filter === "needed"
+        ? !card.hasNormal || (card.reverseHoloAvg1 > 0 && !card.hasHolo)
+        : true;
+
+    // Then apply search text filter
+    const searchLower = searchText.toLowerCase().trim();
+    const matchesSearch =
+      searchLower === "" ||
+      card.name.toLowerCase().includes(searchLower) ||
+      card.number.toLowerCase().includes(searchLower);
+
+    return collectionFiltered && matchesSearch;
   });
 
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex flex-col gap-8 items-center sm:items-start p-8">
-        <div className="w-full flex justify-between items-center">
+        <div className="w-full flex justify-between items-center flex-wrap gap-4">
           <h1 className="text-4xl font-bold">Admin Dashboard</h1>
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
+            <input
+              type="text"
+              placeholder="Search by name or number..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="px-4 py-2 border rounded-md bg-inherit min-w-[200px]"
+            />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="px-4 py-2 border rounded-md"
+              className="px-4 py-2 border rounded-md bg-inherit"
             >
-              <option value="all">All Cards</option>
-              <option value="owned">Owned Cards</option>
-              <option value="needed">Needed Cards</option>
+              <option value="all" className="bg-black">
+                All Cards
+              </option>
+              <option value="owned" className="bg-black">
+                Owned Cards
+              </option>
+              <option value="needed" className="bg-black">
+                Needed Cards
+              </option>
             </select>
             <button
               onClick={updatePrices}
@@ -111,6 +150,13 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* Add results count */}
+        <div className="w-full text-sm text-gray-500">
+          Showing {filteredCards.length}{" "}
+          {filteredCards.length === 1 ? "card" : "cards"}
+          {searchText && ` matching "${searchText}"`}
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-8">
           {filteredCards.map((card) => (
             <div
@@ -120,7 +166,7 @@ export default function AdminPage() {
                   ? card.hasNormal && card.hasHolo
                     ? "border-green-500"
                     : card.hasNormal || card.hasHolo
-                    ? "border-yellow-500"
+                    ? "border-blue-500"
                     : "border-gray-200"
                   : card.hasNormal
                   ? "border-green-500"
@@ -185,6 +231,21 @@ export default function AdminPage() {
                     <span>Have Holo</span>
                   </label>
                 )}
+                <label className="flex items-center gap-2">
+                  <span>Pack #:</span>
+                  <input
+                    type="number"
+                    value={card.packNumber || ""}
+                    onChange={(e) =>
+                      handleCollectionUpdate(
+                        card.id,
+                        "packNumber",
+                        e.target.value ? parseInt(e.target.value, 10) : null
+                      )
+                    }
+                    className="w-14 px-2 py-1 border rounded-md bg-inherit"
+                  />
+                </label>
               </div>
             </div>
           ))}
