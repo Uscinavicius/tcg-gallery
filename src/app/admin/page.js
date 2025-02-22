@@ -402,7 +402,7 @@ export default function AdminPage() {
                         )}
                         <div className="space-y-2 border-gray-700/50">
                           <div className="flex items-center justify-between gap-2 border-b border-gray-700/50 pb-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full justify-between">
                               <span className="text-gray-400 whitespace-nowrap">
                                 Pack #:
                               </span>
@@ -418,7 +418,7 @@ export default function AdminPage() {
                                       : null
                                   )
                                 }
-                                className="w-14 px-2 py-1 border rounded-md bg-inherit"
+                                className="w-14 px-2 py-1 border-b bg-inherit text-center"
                               />
                             </div>
                           </div>
