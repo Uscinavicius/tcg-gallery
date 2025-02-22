@@ -8,7 +8,7 @@ const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function AdminPage() {
   const [filter, setFilter] = useState("all"); // "all", "owned", "needed"
-  const [updating, setUpdating] = useState(false);
+  const [updating, setUpdating] = useState({}); // Track updating state per card
   const [searchText, setSearchText] = useState("");
   const { data: cards, error, mutate } = useSWR("/api/cards", fetcher);
 
@@ -85,6 +85,37 @@ export default function AdminPage() {
       alert("Failed to update prices: " + error.message);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const updateCardPrice = async (cardId, cardNumber) => {
+    try {
+      setUpdating((prev) => ({ ...prev, [cardId]: true }));
+
+      const response = await fetch(`/api/updatePrices/${cardId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: cardNumber }),
+      });
+
+      const data = await response.json();
+      console.log("Price update response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update price");
+      }
+
+      await mutate(); // Refresh the card data
+      console.log("Price update successful:", data);
+    } catch (error) {
+      console.error("Error updating price:", {
+        message: error.message,
+        cardId,
+        response: error.response,
+      });
+      alert(`Failed to update price for card #${cardNumber}: ${error.message}`);
+    } finally {
+      setUpdating((prev) => ({ ...prev, [cardId]: false }));
     }
   };
 
@@ -246,6 +277,17 @@ export default function AdminPage() {
                     className="w-14 px-2 py-1 border rounded-md bg-inherit"
                   />
                 </label>
+                <button
+                  onClick={() => updateCardPrice(card.id, card.number)}
+                  disabled={updating[card.id]}
+                  className={`mt-2 px-2 py-1 text-sm bg-blue-500 text-white rounded-md ${
+                    updating[card.id]
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-blue-600"
+                  }`}
+                >
+                  {updating[card.id] ? "Updating..." : "Update Price"}
+                </button>
               </div>
             </div>
           ))}
