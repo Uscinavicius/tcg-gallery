@@ -166,7 +166,7 @@ export default function AdminPage() {
   const toggleSidebar = () => {
     const newVisibility = !sidebarVisible;
     setSidebarVisible(newVisibility);
-    
+
     // If we're opening the panel and there are no cards, initialize with empty array
     if (newVisibility && !sidebarCards.length) {
       setSidebarCards([]);
@@ -175,7 +175,46 @@ export default function AdminPage() {
   };
 
   if (error) return <div>Failed to load</div>;
-  if (!cards) return <div>Loading...</div>;
+  if (!cards)
+    return (
+      <div
+        className="min-h-screen flex flex-col"
+        style={{ paddingTop: "64px" }}
+      >
+        <div className="flex-1 flex flex-col max-w-[2400px] mx-auto w-full">
+          <main className="flex flex-col gap-6 items-center p-3 sm:p-6 w-full">
+            <div className="w-full animate-pulse flex justify-between items-center flex-wrap gap-4">
+              <div className="h-10 w-48 bg-gray-700 rounded"></div>
+              <div className="flex gap-4">
+                <div className="h-10 w-32 bg-gray-700 rounded"></div>
+                <div className="h-10 w-48 bg-gray-700 rounded"></div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6 w-full place-items-center">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="flex justify-center w-full h-[520px]">
+                  <div className="flex flex-col border-2 border-gray-700 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 animate-pulse">
+                    <div className="w-full h-[251px] bg-gray-700 rounded mb-4"></div>
+                    <div className="w-3/4 h-6 bg-gray-700 rounded mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="w-full h-4 bg-gray-700 rounded"></div>
+                      <div className="w-full h-4 bg-gray-700 rounded"></div>
+                      <div className="w-3/4 h-4 bg-gray-700 rounded"></div>
+                    </div>
+                    <div className="flex-1"></div>
+                    <div className="space-y-2 w-full">
+                      <div className="w-full h-6 bg-gray-700 rounded"></div>
+                      <div className="w-full h-6 bg-gray-700 rounded"></div>
+                      <div className="w-full h-8 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </main>
+        </div>
+      </div>
+    );
 
   const filteredCards = cards.filter((card) => {
     const collectionFiltered =
@@ -196,11 +235,19 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ paddingTop: "64px" }}>
-      <div className={`flex-1 flex flex-col ${
-        sidebarVisible ? "md:pr-[650px] lg:pr-[650px] xl:pr-[650px] 2xl:pr-[650px]" : ""
-      } max-w-[2400px] mx-auto w-full`}>
+      <div
+        className={`flex-1 flex flex-col ${
+          sidebarVisible
+            ? "md:pr-[650px] lg:pr-[650px] xl:pr-[650px] 2xl:pr-[650px]"
+            : ""
+        } max-w-[2400px] mx-auto w-full`}
+      >
         <main className="flex flex-col gap-6 items-center p-3 sm:p-6 w-full">
-          <div className={`w-full max-w-[2000px] ${!sidebarVisible ? "mx-auto px-4" : ""} flex justify-between items-center flex-wrap gap-4`}>
+          <div
+            className={`w-full max-w-[2000px] ${
+              !sidebarVisible ? "mx-auto px-4" : ""
+            } flex justify-between items-center flex-wrap gap-4`}
+          >
             <h1 className="text-4xl font-bold">Admin Dashboard</h1>
             <div className="flex gap-4 flex-wrap">
               <button
@@ -212,7 +259,9 @@ export default function AdminPage() {
                 }`}
                 title="Toggle reference panel"
               >
-                {sidebarVisible ? "Hide Reference Panel" : "Show Reference Panel"}
+                {sidebarVisible
+                  ? "Hide Reference Panel"
+                  : "Show Reference Panel"}
               </button>
               <input
                 type="text"
@@ -236,17 +285,6 @@ export default function AdminPage() {
                   Needed Cards
                 </option>
               </select>
-              <button
-                onClick={updatePrices}
-                disabled={updating}
-                className={`px-4 py-2 bg-blue-500 text-white rounded-md ${
-                  updating
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-blue-600"
-                }`}
-              >
-                {updating ? "Updating Prices..." : "Update Prices"}
-              </button>
             </div>
           </div>
 
@@ -256,17 +294,19 @@ export default function AdminPage() {
             {searchText && ` matching "${searchText}"`}
           </div>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${
-            sidebarVisible 
-              ? "md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-              : "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
-          } gap-4 lg:gap-6 w-full ${
-            !sidebarVisible ? "max-w-[2000px] mx-auto px-4" : ""
-          } place-items-center`}>
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 ${
+              sidebarVisible
+                ? "md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                : "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+            } gap-4 lg:gap-6 w-full ${
+              !sidebarVisible ? "max-w-[2000px] mx-auto px-4" : ""
+            } place-items-center`}
+          >
             {filteredCards.map((card) => (
-              <div key={card.id} className="flex justify-center w-full">
+              <div key={card.id} className="flex justify-center w-full h-[520px]">
                 <div
-                  className={`flex flex-col border-2 rounded-lg p-3 w-full max-w-[220px] h-auto relative ${
+                  className={`flex flex-col border-2 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
                     card.reverseHoloAvg1 > 0
                       ? card.hasNormal && card.hasHolo
                         ? "border-green-500"
@@ -298,96 +338,106 @@ export default function AdminPage() {
                     {isInSidebar(card.id) ? "★" : "+"}
                   </button>
 
-                  <div>
-                    <div className="text-xs font-bold text-gray-400 mb-2">
+                  <div className="space-y-3 flex-1 flex flex-col">
+                    <div className="text-xs font-bold text-gray-400">
                       #{card.number}
                     </div>
                     <Image
                       src={card.imageUrl}
                       alt={card.name}
                       width={180}
-                      height={251}
+                      height={271}
                       className="mx-auto rounded-md"
                     />
-                    <h2 className="text-base font-bold mt-2 truncate">
+                    <h2 className="text-base font-bold truncate mb-4">
                       {card.name}
                     </h2>
-                    <div className="space-y-1 text-sm">
-                      <p>
-                        <span className="text-gray-400">Rarity:</span>{" "}
-                        {card.rarity}
-                      </p>
-                      <p>
-                        <span className="text-gray-400">Normal:</span> $
-                        {card.price}
-                      </p>
-                      {card.reverseHoloAvg1 > 0 && (
-                        <p>
-                          <span className="text-gray-400">Holo:</span> $
-                          {card.reverseHoloAvg1}
-                        </p>
-                      )}
+                    <div className="space-y-4 text-sm flex-1 flex flex-col justify-end">
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between gap-4 border-b border-gray-700/50 pb-2">
+                          <span className="text-gray-400">Normal:</span>
+                          <div className="flex items-center gap-3">
+                            <span className="tabular-nums">${card.price}</span>
+                            <label className="flex items-center gap-1.5 min-w-[70px]">
+                              <input
+                                type="checkbox"
+                                checked={card.hasNormal || false}
+                                onChange={(e) =>
+                                  handleCollectionUpdate(
+                                    card.id,
+                                    "normal",
+                                    e.target.checked
+                                  )
+                                }
+                                className="w-4 h-4"
+                              />
+                              <span>Have</span>
+                            </label>
+                          </div>
+                        </div>
+                        {card.reverseHoloAvg1 > 0 && (
+                          <div className="flex items-center justify-between gap-4 border-b border-gray-700/50 pb-2">
+                            <span className="text-gray-400">Holo:</span>
+                            <div className="flex items-center gap-3">
+                              <span className="tabular-nums">
+                                ${card.reverseHoloAvg1}
+                              </span>
+                              <label className="flex items-center gap-1.5 min-w-[70px]">
+                                <input
+                                  type="checkbox"
+                                  checked={card.hasHolo || false}
+                                  onChange={(e) =>
+                                    handleCollectionUpdate(
+                                      card.id,
+                                      "holo",
+                                      e.target.checked
+                                    )
+                                  }
+                                  className="w-4 h-4"
+                                />
+                                <span>Have</span>
+                              </label>
+                            </div>
+                          </div>
+                        )}
+                        <div className="space-y-2 border-gray-700/50">
+                          <div className="flex items-center justify-between gap-2 border-b border-gray-700/50 pb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-400 whitespace-nowrap">
+                                Pack #:
+                              </span>
+                              <input
+                                type="number"
+                                value={card.packNumber || ""}
+                                onChange={(e) =>
+                                  handleCollectionUpdate(
+                                    card.id,
+                                    "packNumber",
+                                    e.target.value
+                                      ? parseInt(e.target.value, 10)
+                                      : null
+                                  )
+                                }
+                                className="w-14 px-2 py-1 border rounded-md bg-inherit"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            onClick={() =>
+                              updateCardPrice(card.id, card.number)
+                            }
+                            disabled={updating[card.id]}
+                            className={`w-full px-2 py-1 text-xs bg-blue-500/80 text-white rounded-md whitespace-nowrap ${
+                              updating[card.id]
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:bg-blue-600"
+                            }`}
+                          >
+                            {updating[card.id] ? "..." : "Update Price"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5 mt-auto pt-3">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={card.hasNormal || false}
-                        onChange={(e) =>
-                          handleCollectionUpdate(
-                            card.id,
-                            "normal",
-                            e.target.checked
-                          )
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span>Have Normal</span>
-                    </label>
-                    {card.reverseHoloAvg1 > 0 && (
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={card.hasHolo || false}
-                          onChange={(e) =>
-                            handleCollectionUpdate(
-                              card.id,
-                              "holo",
-                              e.target.checked
-                            )
-                          }
-                          className="w-4 h-4"
-                        />
-                        <span>Have Holo</span>
-                      </label>
-                    )}
-                    <label className="flex items-center gap-2">
-                      <span>Pack #:</span>
-                      <input
-                        type="number"
-                        value={card.packNumber || ""}
-                        onChange={(e) =>
-                          handleCollectionUpdate(
-                            card.id,
-                            "packNumber",
-                            e.target.value ? parseInt(e.target.value, 10) : null
-                          )
-                        }
-                        className="w-14 px-2 py-1 border rounded-md bg-inherit"
-                      />
-                    </label>
-                    <button
-                      onClick={() => updateCardPrice(card.id, card.number)}
-                      disabled={updating[card.id]}
-                      className={`mt-2 px-2 py-1 text-sm bg-blue-500 text-white rounded-md ${
-                        updating[card.id]
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-blue-600"
-                      }`}
-                    >
-                      {updating[card.id] ? "Updating..." : "Update Price"}
-                    </button>
                   </div>
                 </div>
               </div>
@@ -407,7 +457,9 @@ export default function AdminPage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div>
-                <h2 className="text-lg sm:text-xl font-bold">Reference Cards</h2>
+                <h2 className="text-lg sm:text-xl font-bold">
+                  Reference Cards
+                </h2>
                 <p className="text-sm text-gray-400">
                   {sidebarCards.length}{" "}
                   {sidebarCards.length === 1 ? "card" : "cards"} total
@@ -429,8 +481,17 @@ export default function AdminPage() {
                 className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
                 title="Close sidebar"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414 1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414 1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
             </div>
