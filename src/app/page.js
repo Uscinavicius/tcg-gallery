@@ -6,6 +6,115 @@ import { useState, useEffect } from "react";
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
+function LoadingSkeleton({ viewType = "card" }) {
+  if (viewType === "card") {
+    return (
+      <>
+        <div className="w-full animate-pulse flex justify-between items-center flex-wrap gap-4 max-w-[2000px] mx-auto px-4">
+          <div className="flex items-center gap-8 flex-wrap">
+            <div className="h-12 w-64 bg-gray-800/80 rounded"></div>
+            <div className="h-8 w-72 bg-gray-800/80 rounded flex items-center gap-2 pl-8 border-l border-gray-700">
+              <div className="w-20 h-5 bg-gray-700/80 rounded"></div>
+              <div className="w-24 h-6 bg-gray-700/80 rounded"></div>
+              <div className="w-16 h-4 bg-gray-700/80 rounded"></div>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="h-10 w-36 bg-gray-800/80 rounded"></div>
+            <div className="h-10 w-36 bg-gray-800/80 rounded"></div>
+          </div>
+        </div>
+
+        <div className="w-full text-sm text-gray-500 max-w-[2000px] mx-auto px-4">
+          <div className="h-5 w-32 bg-gray-800/80 rounded"></div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6 w-full max-w-[2000px] mx-auto px-4 place-items-center">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="flex justify-center w-full sm:h-[500px] h-fit"
+            >
+              <div className="flex flex-col border-2 border-gray-800/80 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 animate-pulse">
+                <div className="h-4 w-16 bg-gray-800/80 rounded mb-4"></div>
+                <div className="w-full h-[280px] bg-gray-800/80 rounded mb-4"></div>
+                <div className="h-6 w-3/4 bg-gray-800/80 rounded mb-2"></div>
+                <div className="h-4 w-1/2 bg-gray-800/80 rounded mb-4"></div>
+                <div className="mt-auto space-y-2">
+                  <div className="h-5 w-32 bg-gray-800/80 rounded"></div>
+                  <div className="h-5 w-32 bg-gray-800/80 rounded"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="w-full animate-pulse flex justify-between items-center flex-wrap gap-4 max-w-[2000px] mx-auto px-4">
+        <div className="flex items-center gap-8 flex-wrap">
+          <div className="h-12 w-64 bg-gray-800/80 rounded"></div>
+          <div className="h-8 w-72 bg-gray-800/80 rounded flex items-center gap-2 pl-8 border-l border-gray-700">
+            <div className="w-20 h-5 bg-gray-700/80 rounded"></div>
+            <div className="w-24 h-6 bg-gray-700/80 rounded"></div>
+            <div className="w-16 h-4 bg-gray-700/80 rounded"></div>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="h-10 w-36 bg-gray-800/80 rounded"></div>
+          <div className="h-10 w-36 bg-gray-800/80 rounded"></div>
+        </div>
+      </div>
+
+      <div className="w-full text-sm text-gray-500 max-w-[2000px] mx-auto px-4">
+        <div className="h-5 w-32 bg-gray-800/80 rounded"></div>
+      </div>
+
+      <div className="w-full max-w-[2000px] mx-auto px-4">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-gray-700">
+              <th className="text-left py-3 px-4 w-24">
+                <div className="h-6 bg-gray-800/80 rounded"></div>
+              </th>
+              <th className="text-left py-3 px-4">
+                <div className="h-6 bg-gray-800/80 rounded w-32"></div>
+              </th>
+              <th className="text-left py-3 px-4 w-24">
+                <div className="h-6 bg-gray-800/80 rounded"></div>
+              </th>
+              <th className="text-left py-3 px-4 w-24">
+                <div className="h-6 bg-gray-800/80 rounded"></div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(10)].map((_, i) => (
+              <tr key={i} className="border-b border-gray-800">
+                <td className="py-3 px-4">
+                  <div className="h-5 bg-gray-800/80 rounded w-12"></div>
+                </td>
+                <td className="py-3 px-4">
+                  <div className="h-5 bg-gray-800/80 rounded w-48"></div>
+                </td>
+                <td className="py-3 px-4">
+                  <div className="h-5 bg-gray-800/80 rounded w-6"></div>
+                </td>
+                <td className="py-3 px-4">
+                  <div className="h-5 bg-gray-800/80 rounded w-6"></div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
 export default function Home() {
   const [filter, setFilter] = useState("all");
   const [viewType, setViewType] = useState("card");
@@ -32,7 +141,17 @@ export default function Home() {
   }, []);
 
   if (error) return <div>Failed to load</div>;
-  if (!cards) return <div>Loading...</div>;
+  if (!cards) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1 flex flex-col max-w-[2400px] mx-auto w-full">
+          <main className="flex flex-col gap-6 items-center p-3 sm:p-6 w-full">
+            <LoadingSkeleton viewType={viewType} />
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   const filteredCards = cards.filter((card) => {
     if (filter === "owned") {

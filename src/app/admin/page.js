@@ -6,6 +6,62 @@ import { useState, useEffect } from "react";
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen flex flex-col" style={{ paddingTop: "64px" }}>
+      <div className="flex-1 flex flex-col max-w-[2400px] mx-auto w-full">
+        <main className="flex flex-col gap-6 items-center p-3 sm:p-6 w-full">
+          <div className="w-full animate-pulse flex justify-between items-center flex-wrap gap-4">
+            <div className="h-10 w-48 bg-gray-800/80 rounded"></div>
+            <div className="flex gap-4">
+              <div className="h-10 w-48 bg-gray-800/80 rounded"></div>
+              <div className="h-10 w-48 bg-gray-800/80 rounded"></div>
+              <div className="h-10 w-48 bg-gray-800/80 rounded"></div>
+            </div>
+          </div>
+
+          <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg animate-pulse">
+            <div className="text-center space-y-2">
+              <div className="h-6 w-32 bg-gray-800/80 rounded mx-auto"></div>
+              <div className="h-8 w-24 bg-gray-800/80 rounded mx-auto"></div>
+            </div>
+            <div className="text-center space-y-2">
+              <div className="h-6 w-32 bg-gray-800/80 rounded mx-auto"></div>
+              <div className="h-8 w-24 bg-gray-800/80 rounded mx-auto"></div>
+            </div>
+            <div className="text-center space-y-2">
+              <div className="h-6 w-32 bg-gray-800/80 rounded mx-auto"></div>
+              <div className="h-8 w-24 bg-gray-800/80 rounded mx-auto"></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6 w-full place-items-center">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="flex justify-center w-full h-[520px]">
+                <div className="flex flex-col border-2 border-gray-800/80 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 animate-pulse">
+                  <div className="w-full h-[251px] bg-gray-800/80 rounded mb-4"></div>
+                  <div className="w-3/4 h-6 bg-gray-800/80 rounded mb-4"></div>
+                  <div className="space-y-2">
+                    <div className="w-full h-4 bg-gray-800/80 rounded"></div>
+                    <div className="w-full h-4 bg-gray-800/80 rounded"></div>
+                    <div className="w-3/4 h-4 bg-gray-800/80 rounded"></div>
+                  </div>
+                  <div className="flex-1"></div>
+                  <div className="space-y-2 w-full">
+                    <div className="w-full h-6 bg-gray-800/80 rounded"></div>
+                    <div className="w-full h-6 bg-gray-800/80 rounded"></div>
+                    <div className="w-full h-8 bg-gray-800/80 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [filter, setFilter] = useState("all");
   const [updating, setUpdating] = useState({});
@@ -175,61 +231,7 @@ export default function AdminPage() {
   };
 
   if (error) return <div>Failed to load</div>;
-  if (!cards)
-    return (
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ paddingTop: "64px" }}
-      >
-        <div className="flex-1 flex flex-col max-w-[2400px] mx-auto w-full">
-          <main className="flex flex-col gap-6 items-center p-3 sm:p-6 w-full">
-            <div className="w-full animate-pulse flex justify-between items-center flex-wrap gap-4">
-              <div className="h-10 w-48 bg-gray-700 rounded"></div>
-              <div className="flex gap-4">
-                <div className="h-10 w-32 bg-gray-700 rounded"></div>
-                <div className="h-10 w-48 bg-gray-700 rounded"></div>
-              </div>
-
-              <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg animate-pulse">
-                <div className="text-center space-y-2">
-                  <div className="h-6 w-32 bg-gray-700 rounded mx-auto"></div>
-                  <div className="h-8 w-24 bg-gray-700 rounded mx-auto"></div>
-                </div>
-                <div className="text-center space-y-2">
-                  <div className="h-6 w-32 bg-gray-700 rounded mx-auto"></div>
-                  <div className="h-8 w-24 bg-gray-700 rounded mx-auto"></div>
-                </div>
-                <div className="text-center space-y-2">
-                  <div className="h-6 w-32 bg-gray-700 rounded mx-auto"></div>
-                  <div className="h-8 w-24 bg-gray-700 rounded mx-auto"></div>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6 w-full place-items-center">
-              {[...Array(12)].map((_, i) => (
-                <div key={i} className="flex justify-center w-full h-[520px]">
-                  <div className="flex flex-col border-2 border-gray-700 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 animate-pulse">
-                    <div className="w-full h-[251px] bg-gray-700 rounded mb-4"></div>
-                    <div className="w-3/4 h-6 bg-gray-700 rounded mb-4"></div>
-                    <div className="space-y-2">
-                      <div className="w-full h-4 bg-gray-700 rounded"></div>
-                      <div className="w-full h-4 bg-gray-700 rounded"></div>
-                      <div className="w-3/4 h-4 bg-gray-700 rounded"></div>
-                    </div>
-                    <div className="flex-1"></div>
-                    <div className="space-y-2 w-full">
-                      <div className="w-full h-6 bg-gray-700 rounded"></div>
-                      <div className="w-full h-6 bg-gray-700 rounded"></div>
-                      <div className="w-full h-8 bg-gray-700 rounded"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </main>
-        </div>
-      </div>
-    );
+  if (!cards) return <LoadingSkeleton />;
 
   const filteredCards = cards.filter((card) => {
     const collectionFiltered =
