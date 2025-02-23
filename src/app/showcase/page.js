@@ -38,13 +38,6 @@ export default function ShowcasePage() {
     return total + (card.hasNormal ? 1 : 0);
   }, 0);
 
-  const collectionValue = cards.reduce((total, card) => {
-    let value = 0;
-    if (card.hasNormal) value += card.price;
-    if (card.hasHolo && card.reverseHoloAvg1 > 0) value += card.reverseHoloAvg1;
-    return total + value;
-  }, 0);
-
   return (
     <div className="min-h-screen flex flex-col" style={{ paddingTop: "64px" }}>
       <div className="flex-1 flex flex-col max-w-[2400px] mx-auto w-full">
@@ -68,7 +61,7 @@ export default function ShowcasePage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-100 p-4 rounded-lg max-w-[2000px] mx-auto px-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 bg-gray-100 p-4 rounded-lg max-w-[2000px] mx-auto px-4 w-full">
             <div className="text-center">
               <h2 className="text-xl font-bold text-gray-700">
                 Collection Progress
@@ -78,14 +71,6 @@ export default function ShowcasePage() {
               </p>
               <p className="text-gray-600">
                 ({((cardsOwned / totalPossibleCards) * 100).toFixed(1)}%)
-              </p>
-            </div>
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-700">
-                Collection Value
-              </h2>
-              <p className="text-3xl font-bold text-blue-600">
-                ${collectionValue.toFixed(2)}
               </p>
             </div>
             <div className="text-center">

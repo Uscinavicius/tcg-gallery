@@ -189,6 +189,21 @@ export default function AdminPage() {
                 <div className="h-10 w-32 bg-gray-700 rounded"></div>
                 <div className="h-10 w-48 bg-gray-700 rounded"></div>
               </div>
+
+              <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg animate-pulse">
+                <div className="text-center space-y-2">
+                  <div className="h-6 w-32 bg-gray-700 rounded mx-auto"></div>
+                  <div className="h-8 w-24 bg-gray-700 rounded mx-auto"></div>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="h-6 w-32 bg-gray-700 rounded mx-auto"></div>
+                  <div className="h-8 w-24 bg-gray-700 rounded mx-auto"></div>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="h-6 w-32 bg-gray-700 rounded mx-auto"></div>
+                  <div className="h-8 w-24 bg-gray-700 rounded mx-auto"></div>
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6 w-full place-items-center">
               {[...Array(12)].map((_, i) => (
@@ -232,6 +247,25 @@ export default function AdminPage() {
 
     return collectionFiltered && matchesSearch;
   });
+
+  // Calculate collection statistics
+  const totalPossibleCards = cards.reduce((total, card) => {
+    return total + (card.reverseHoloAvg1 > 0 ? 2 : 1);
+  }, 0);
+
+  const cardsOwned = cards.reduce((total, card) => {
+    if (card.reverseHoloAvg1 > 0) {
+      return total + (card.hasNormal ? 1 : 0) + (card.hasHolo ? 1 : 0);
+    }
+    return total + (card.hasNormal ? 1 : 0);
+  }, 0);
+
+  const collectionValue = cards.reduce((total, card) => {
+    let value = 0;
+    if (card.hasNormal) value += card.price;
+    if (card.hasHolo && card.reverseHoloAvg1 > 0) value += card.reverseHoloAvg1;
+    return total + value;
+  }, 0);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ paddingTop: "64px" }}>
@@ -288,6 +322,34 @@ export default function AdminPage() {
             </div>
           </div>
 
+          <div
+            className={`w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg max-w-[2000px] ${
+              !sidebarVisible ? "mx-auto px-4" : ""
+            }`}
+          >
+            <div className="text-center">
+              <h2 className="text-xl font-bold">Collection Progress</h2>
+              <p className="text-3xl font-bold text-green-500">
+                {cardsOwned} / {totalPossibleCards}
+              </p>
+              <p className="text-gray-400">
+                ({((cardsOwned / totalPossibleCards) * 100).toFixed(1)}%)
+              </p>
+            </div>
+            <div className="text-center">
+              <h2 className="text-xl font-bold">Collection Value</h2>
+              <p className="text-3xl font-bold text-blue-500">
+                ${collectionValue.toFixed(2)}
+              </p>
+            </div>
+            <div className="text-center">
+              <h2 className="text-xl font-bold">Total Cards</h2>
+              <p className="text-3xl font-bold text-purple-500">
+                {cards.length}
+              </p>
+            </div>
+          </div>
+
           <div className="w-full text-sm text-gray-500">
             Showing {filteredCards.length}{" "}
             {filteredCards.length === 1 ? "card" : "cards"}
@@ -304,7 +366,10 @@ export default function AdminPage() {
             } place-items-center`}
           >
             {filteredCards.map((card) => (
-              <div key={card.id} className="flex justify-center w-full h-[520px]">
+              <div
+                key={card.id}
+                className="flex justify-center w-full h-[520px]"
+              >
                 <div
                   className={`flex flex-col border-2 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
                     card.reverseHoloAvg1 > 0
