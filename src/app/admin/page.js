@@ -64,6 +64,7 @@ function LoadingSkeleton() {
 
 export default function AdminPage() {
   const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("number"); // new sorting state
   const [updating, setUpdating] = useState({});
   const [searchText, setSearchText] = useState("");
   const [sidebarCards, setSidebarCards] = useState([]);
@@ -250,6 +251,22 @@ export default function AdminPage() {
     return collectionFiltered && matchesSearch;
   });
 
+  // Sort cards based on selected sort option
+  const sortedCards = [...filteredCards].sort((a, b) => {
+    if (sortBy === "number") {
+      return parseInt(a.number) - parseInt(b.number);
+    } else if (sortBy === "packAsc") {
+      if (!a.packNumber) return 1;
+      if (!b.packNumber) return -1;
+      return a.packNumber - b.packNumber;
+    } else if (sortBy === "packDesc") {
+      if (!a.packNumber) return 1;
+      if (!b.packNumber) return -1;
+      return b.packNumber - a.packNumber;
+    }
+    return 0;
+  });
+
   // Calculate collection statistics
   const totalPossibleCards = cards.reduce((total, card) => {
     return total + (card.reverseHoloAvg1 > 0 ? 2 : 1);
@@ -321,6 +338,21 @@ export default function AdminPage() {
                   Needed Cards
                 </option>
               </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 border rounded-md bg-inherit"
+              >
+                <option value="number" className="bg-black">
+                  Sort by Number
+                </option>
+                <option value="packAsc" className="bg-black">
+                  Sort by Pack # (Asc)
+                </option>
+                <option value="packDesc" className="bg-black">
+                  Sort by Pack # (Desc)
+                </option>
+              </select>
             </div>
           </div>
 
@@ -353,8 +385,8 @@ export default function AdminPage() {
           </div>
 
           <div className="w-full text-sm text-gray-500">
-            Showing {filteredCards.length}{" "}
-            {filteredCards.length === 1 ? "card" : "cards"}
+            Showing {sortedCards.length}{" "}
+            {sortedCards.length === 1 ? "card" : "cards"}
             {searchText && ` matching "${searchText}"`}
           </div>
 
@@ -367,7 +399,7 @@ export default function AdminPage() {
               !sidebarVisible ? "max-w-[2000px] mx-auto px-4" : ""
             } place-items-center`}
           >
-            {filteredCards.map((card) => (
+            {sortedCards.map((card) => (
               <div
                 key={card.id}
                 className="flex justify-center w-full h-[520px]"
