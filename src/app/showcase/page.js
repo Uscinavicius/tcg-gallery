@@ -43,47 +43,31 @@ export default function ShowcasePage() {
       <div className="flex-1 flex flex-col max-w-[2400px] mx-auto w-full">
         <main className="flex flex-col gap-6 items-center p-3 sm:p-6 w-full">
           <div className="w-full max-w-[2000px] mx-auto px-4 flex justify-between items-center flex-wrap gap-4">
-            <h1 className="text-4xl font-bold">Collection Showcase</h1>
+            <div className="flex items-center gap-8 flex-wrap">
+              <h1 className="text-4xl font-bold">Collection Showcase</h1>
+              <div className="flex items-center gap-1.5 text-gray-400 border-l border-gray-700 pl-8">
+                <span className="text-sm font-medium">Progress:</span>
+                <span className="text-base text-green-600 tabular-nums">
+                  {cardsOwned} / {totalPossibleCards}
+                </span>
+                <span className="text-xs">
+                  ({((cardsOwned / totalPossibleCards) * 100).toFixed(1)}%)
+                </span>
+              </div>
+            </div>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="px-4 py-2 border rounded-md bg-inherit"
             >
-              <option value="all" className="bg-black">
-                All Cards
-              </option>
-              <option value="owned" className="bg-black">
-                Owned Cards
-              </option>
-              <option value="needed" className="bg-black">
-                Needed Cards
-              </option>
+              <option value="all" className="bg-black">All Cards</option>
+              <option value="owned" className="bg-black">Owned Cards</option>
+              <option value="needed" className="bg-black">Needed Cards</option>
             </select>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 bg-gray-100 p-4 rounded-lg max-w-[2000px] mx-auto px-4 w-full">
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-700">
-                Collection Progress
-              </h2>
-              <p className="text-3xl font-bold text-green-600">
-                {cardsOwned} / {totalPossibleCards}
-              </p>
-              <p className="text-gray-600">
-                ({((cardsOwned / totalPossibleCards) * 100).toFixed(1)}%)
-              </p>
-            </div>
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-700">Total Cards</h2>
-              <p className="text-3xl font-bold text-purple-600">
-                {cards.length}
-              </p>
-            </div>
-          </div>
-
           <div className="w-full text-sm text-gray-500 max-w-[2000px] mx-auto px-4">
-            Showing {filteredCards.length}{" "}
-            {filteredCards.length === 1 ? "card" : "cards"}
+            Showing {filteredCards.length} {filteredCards.length === 1 ? "card" : "cards"}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6 w-full max-w-[2000px] mx-auto px-4 place-items-center">
