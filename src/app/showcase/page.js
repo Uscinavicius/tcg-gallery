@@ -60,14 +60,21 @@ export default function ShowcasePage() {
               onChange={(e) => setFilter(e.target.value)}
               className="px-4 py-2 border rounded-md bg-inherit"
             >
-              <option value="all" className="bg-black">All Cards</option>
-              <option value="owned" className="bg-black">Owned Cards</option>
-              <option value="needed" className="bg-black">Needed Cards</option>
+              <option value="all" className="bg-black">
+                All Cards
+              </option>
+              <option value="owned" className="bg-black">
+                Owned Cards
+              </option>
+              <option value="needed" className="bg-black">
+                Needed Cards
+              </option>
             </select>
           </div>
 
           <div className="w-full text-sm text-gray-500 max-w-[2000px] mx-auto px-4">
-            Showing {filteredCards.length} {filteredCards.length === 1 ? "card" : "cards"}
+            Showing {filteredCards.length}{" "}
+            {filteredCards.length === 1 ? "card" : "cards"}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 lg:gap-6 w-full max-w-[2000px] mx-auto px-4 place-items-center">
