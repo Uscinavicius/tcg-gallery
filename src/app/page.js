@@ -154,66 +154,58 @@ export default function Home() {
   }
 
   const filteredCards = cards.filter((card) => {
-    if (filter === "owned") {
-      const hasVariant1 =
-        card.variant1 === "normal"
-          ? card.hasNormal
-          : card.variant1 === "holofoil"
-          ? card.hasHolofoil
-          : card.variant1 === "reverseHolofoil"
-          ? card.hasReverseHolofoil
-          : false;
-
-      const hasVariant2 = card.variant2
-        ? card.variant2 === "normal"
-          ? card.hasNormal
-          : card.variant2 === "holofoil"
-          ? card.hasHolofoil
-          : card.variant2 === "reverseHolofoil"
-          ? card.hasReverseHolofoil
-          : false
+    const hasVariant1 =
+      card.variant1 === "normal"
+        ? card.hasNormal
+        : card.variant1 === "holofoil"
+        ? card.hasHolofoil
+        : card.variant1 === "reverseHolofoil"
+        ? card.hasReverseHolofoil
         : false;
 
+    const hasVariant2 = card.variant2
+      ? card.variant2 === "normal"
+        ? card.hasNormal
+        : card.variant2 === "holofoil"
+        ? card.hasHolofoil
+        : card.variant2 === "reverseHolofoil"
+        ? card.hasReverseHolofoil
+        : false
+      : false;
+
+    if (filter === "owned") {
       return hasVariant1 || hasVariant2;
     } else if (filter === "needed") {
-      const needsVariant1 =
-        card.variant1 === "normal"
-          ? !card.hasNormal
-          : card.variant1 === "holofoil"
-          ? !card.hasHolofoil
-          : card.variant1 === "reverseHolofoil"
-          ? !card.hasReverseHolofoil
-          : false;
-
-      const needsVariant2 = card.variant2
-        ? card.variant2 === "normal"
-          ? !card.hasNormal
-          : card.variant2 === "holofoil"
-          ? !card.hasHolofoil
-          : card.variant2 === "reverseHolofoil"
-          ? !card.hasReverseHolofoil
-          : false
-        : false;
-
-      return needsVariant1 || needsVariant2;
+      return !hasVariant1 || (card.variant2 && !hasVariant2);
     }
     return true;
   });
 
   const totalPossibleCards = cards.reduce((total, card) => {
-    return total + (card.variant2 ? 2 : 1);
+    let count = 0;
+    if (card.variant1 === "normal") count++;
+    else if (card.variant1 === "holofoil") count++;
+    else if (card.variant1 === "reverseHolofoil") count++;
+
+    if (card.variant2) {
+      if (card.variant2 === "normal") count++;
+      else if (card.variant2 === "holofoil") count++;
+      else if (card.variant2 === "reverseHolofoil") count++;
+    }
+    return total + count;
   }, 0);
 
   const cardsOwned = cards.reduce((total, card) => {
     let count = 0;
     if (card.variant1 === "normal" && card.hasNormal) count++;
-    if (card.variant1 === "holofoil" && card.hasHolofoil) count++;
-    if (card.variant1 === "reverseHolofoil" && card.hasReverseHolofoil) count++;
+    else if (card.variant1 === "holofoil" && card.hasHolofoil) count++;
+    else if (card.variant1 === "reverseHolofoil" && card.hasReverseHolofoil)
+      count++;
 
     if (card.variant2) {
       if (card.variant2 === "normal" && card.hasNormal) count++;
-      if (card.variant2 === "holofoil" && card.hasHolofoil) count++;
-      if (card.variant2 === "reverseHolofoil" && card.hasReverseHolofoil)
+      else if (card.variant2 === "holofoil" && card.hasHolofoil) count++;
+      else if (card.variant2 === "reverseHolofoil" && card.hasReverseHolofoil)
         count++;
     }
     return total + count;

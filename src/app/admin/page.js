@@ -263,15 +263,30 @@ export default function AdminPage() {
   if (!cards) return <LoadingSkeleton />;
 
   const filteredCards = cards.filter((card) => {
+    const hasVariant1 =
+      card.variant1 === "normal"
+        ? card.hasNormal
+        : card.variant1 === "holofoil"
+        ? card.hasHolofoil
+        : card.variant1 === "reverseHolofoil"
+        ? card.hasReverseHolofoil
+        : false;
+
+    const hasVariant2 = card.variant2
+      ? card.variant2 === "normal"
+        ? card.hasNormal
+        : card.variant2 === "holofoil"
+        ? card.hasHolofoil
+        : card.variant2 === "reverseHolofoil"
+        ? card.hasReverseHolofoil
+        : false
+      : false;
+
     const collectionFiltered =
       filter === "owned"
-        ? (card.variant1 === "normal" ? card.hasNormal : card.hasHolo) ||
-          (card.variant2 &&
-            (card.variant2 === "normal" ? card.hasNormal : card.hasHolo))
+        ? hasVariant1 || hasVariant2
         : filter === "needed"
-        ? !(card.variant1 === "normal" ? card.hasNormal : card.hasHolo) ||
-          (card.variant2 &&
-            !(card.variant2 === "normal" ? card.hasNormal : card.hasHolo))
+        ? !hasVariant1 || (card.variant2 && !hasVariant2)
         : true;
 
     const searchLower = searchText.toLowerCase().trim();
@@ -301,16 +316,31 @@ export default function AdminPage() {
 
   // Calculate collection statistics
   const totalPossibleCards = cards.reduce((total, card) => {
-    return total + (card.variant2 ? 2 : 1);
+    let count = 0;
+    if (card.variant1 === "normal") count++;
+    else if (card.variant1 === "holofoil") count++;
+    else if (card.variant1 === "reverseHolofoil") count++;
+
+    if (card.variant2) {
+      if (card.variant2 === "normal") count++;
+      else if (card.variant2 === "holofoil") count++;
+      else if (card.variant2 === "reverseHolofoil") count++;
+    }
+    return total + count;
   }, 0);
 
   const cardsOwned = cards.reduce((total, card) => {
     let count = 0;
     if (card.variant1 === "normal" && card.hasNormal) count++;
-    if (card.variant1 !== "normal" && card.hasHolo) count++;
+    else if (card.variant1 === "holofoil" && card.hasHolofoil) count++;
+    else if (card.variant1 === "reverseHolofoil" && card.hasReverseHolofoil)
+      count++;
+
     if (card.variant2) {
       if (card.variant2 === "normal" && card.hasNormal) count++;
-      if (card.variant2 !== "normal" && card.hasHolo) count++;
+      else if (card.variant2 === "holofoil" && card.hasHolofoil) count++;
+      else if (card.variant2 === "reverseHolofoil" && card.hasReverseHolofoil)
+        count++;
     }
     return total + count;
   }, 0);
@@ -467,28 +497,33 @@ export default function AdminPage() {
                 <div
                   className={`flex flex-col border-2 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
                     card.variant2
-                      ? (card.variant1 === "normal"
-                          ? card.hasNormal
-                          : card.hasHolo) &&
-                        (card.variant2 === "normal"
-                          ? card.hasNormal
-                          : card.hasHolo)
-                        ? "border-green-500"
-                        : (card.variant1 === "normal"
-                            ? card.hasNormal
-                            : card.hasHolo) ||
-                          (card.variant2 === "normal"
-                            ? card.hasNormal
-                            : card.hasHolo)
-                        ? "border-blue-500"
-                        : "border-gray-200"
-                      : card.variant1 === "normal"
-                      ? card.hasNormal
-                        ? "border-green-500"
-                        : "border-gray-200"
-                      : card.hasHolo
-                      ? "border-green-500"
-                      : "border-gray-200"
+                      ? // If card has two variants, check if both are collected
+                        ((card.variant1 === "normal" && card.hasNormal) ||
+                          (card.variant1 === "holofoil" && card.hasHolofoil) ||
+                          (card.variant1 === "reverseHolofoil" &&
+                            card.hasReverseHolofoil)) &&
+                        ((card.variant2 === "normal" && card.hasNormal) ||
+                          (card.variant2 === "holofoil" && card.hasHolofoil) ||
+                          (card.variant2 === "reverseHolofoil" &&
+                            card.hasReverseHolofoil))
+                        ? "border-green-500" // Both variants collected
+                        : (card.variant1 === "normal" && card.hasNormal) ||
+                          (card.variant1 === "holofoil" && card.hasHolofoil) ||
+                          (card.variant1 === "reverseHolofoil" &&
+                            card.hasReverseHolofoil) ||
+                          (card.variant2 === "normal" && card.hasNormal) ||
+                          (card.variant2 === "holofoil" && card.hasHolofoil) ||
+                          (card.variant2 === "reverseHolofoil" &&
+                            card.hasReverseHolofoil)
+                        ? "border-blue-500" // Only one variant collected
+                        : "border-gray-200" // No variants collected
+                      : // If card has only one variant
+                      (card.variant1 === "normal" && card.hasNormal) ||
+                        (card.variant1 === "holofoil" && card.hasHolofoil) ||
+                        (card.variant1 === "reverseHolofoil" &&
+                          card.hasReverseHolofoil)
+                      ? "border-green-500" // Single variant collected
+                      : "border-gray-200" // Not collected
                   }`}
                 >
                   <button
