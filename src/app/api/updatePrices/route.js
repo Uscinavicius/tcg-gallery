@@ -1,75 +1,85 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import pokemon from "@/lib/pokemonTcg";
 
 export async function POST() {
   try {
-    console.log("Starting bulk price update process...");
+    console.log("Starting bulk price update...");
 
-    // Fetch all cards from the public API endpoint
-    const response = await fetch(
-      "https://api.pokemontcg.io/v2/cards?q=set.id:sv7"
+    const dbCards = await prisma.card.findMany();
+    const tcgCards = await pokemon.card.where({ q: "set.id:sv7" });
+
+    if (!tcgCards.data?.length) {
+      throw new Error("No cards found in the set");
+    }
+
+    console.log(`Found ${tcgCards.data.length} cards in the set`);
+
+    const tcgCardMap = new Map(
+      tcgCards.data.map((card) => [card.number, card])
     );
 
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
+    const updates = dbCards.map(async (card) => {
+      const tcgCard = tcgCardMap.get(card.number);
+      const prices = tcgCard?.tcgplayer?.prices;
 
-    const data = await response.json();
-    console.log(`Retrieved ${data.data?.length || 0} cards from API`);
+      if (!prices) {
+        console.log(`No price data available for card #${card.number}`);
+        return null;
+      }
 
-    if (!data.data || !Array.isArray(data.data)) {
-      throw new Error("Invalid response from Pokemon TCG API");
-    }
+      // Collect all available variants with their prices
+      const variants = [];
 
-    // Create a map of card numbers to their prices for faster lookup
-    const priceMap = new Map(
-      data.data.map((card) => [
-        card.number,
-        {
-          price: card.cardmarket?.prices?.averageSellPrice || 0,
-          reverseHoloAvg1: card.cardmarket?.prices?.reverseHoloAvg1 || 0,
+      if (prices.normal?.market || prices.normal?.mid) {
+        variants.push({
+          type: "normal",
+          price: prices.normal.market || prices.normal.mid,
+        });
+      }
+
+      if (prices.holofoil?.market || prices.holofoil?.mid) {
+        variants.push({
+          type: "holofoil",
+          price: prices.holofoil.market || prices.holofoil.mid,
+        });
+      }
+
+      if (prices.reverseHolofoil?.market || prices.reverseHolofoil?.mid) {
+        variants.push({
+          type: "reverseHolofoil",
+          price: prices.reverseHolofoil.market || prices.reverseHolofoil.mid,
+        });
+      }
+
+      // Sort variants by price
+      variants.sort((a, b) => a.price - b.price);
+
+      return prisma.card.update({
+        where: { id: card.id },
+        data: {
+          price1: variants[0]?.price || 0,
+          variant1: variants[0]?.type || "normal",
+          price2: variants[1]?.price || 0,
+          variant2: variants[1]?.type || null,
+          lastPriceUpdate: new Date(),
         },
-      ])
-    );
-
-    // Get all cards from database
-    const dbCards = await prisma.card.findMany({
-      select: { id: true, number: true },
+      });
     });
 
-    // Prepare batch updates
-    const updates = dbCards
-      .map((card) => {
-        const prices = priceMap.get(card.number);
-        if (!prices) {
-          console.log(`No price data found for card ${card.number}`);
-          return null;
-        }
+    const results = await Promise.all(updates);
+    const successfulUpdates = results.filter(Boolean);
 
-        return prisma.card.update({
-          where: { id: card.id },
-          data: {
-            price: prices.price,
-            reverseHoloAvg1: prices.reverseHoloAvg1,
-            lastPriceUpdate: new Date(),
-          },
-        });
-      })
-      .filter(Boolean);
-
-    // Execute all updates in a transaction
-    console.log(`Executing ${updates.length} updates...`);
-    const updatedCards = await prisma.$transaction(updates);
+    console.log(`Successfully updated ${successfulUpdates.length} cards`);
 
     return NextResponse.json({
-      message: "Prices updated successfully",
-      updatedCount: updatedCards.length,
-      totalCards: dbCards.length,
+      message: `Updated ${successfulUpdates.length} cards`,
+      updatedCards: successfulUpdates,
     });
   } catch (error) {
-    console.error("Error in bulk price update:", error);
+    console.error("Error updating prices:", error);
     return NextResponse.json(
-      { error: `Error updating prices: ${error.message}` },
+      { error: `Failed to update prices: ${error.message}` },
       { status: 500 }
     );
   }

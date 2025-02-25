@@ -66,6 +66,7 @@ export default function AdminPage() {
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("number"); // new sorting state
   const [updating, setUpdating] = useState({});
+  const [bulkUpdating, setBulkUpdating] = useState(false); // Add this state
   const [searchText, setSearchText] = useState("");
   const [sidebarCards, setSidebarCards] = useState([]);
   const [sidebarVisible, setSidebarVisible] = useState(false);
@@ -97,8 +98,9 @@ export default function AdminPage() {
           return {
             ...card,
             hasNormal: field === "normal" ? value : card.hasNormal,
-            hasHolo: field === "holo" ? value : card.hasHolo,
-            packNumber: field === "packNumber" ? value : card.packNumber,
+            hasHolofoil: field === "holofoil" ? value : card.hasHolofoil,
+            hasReverseHolofoil:
+              field === "reverseHolofoil" ? value : card.hasReverseHolofoil,
           };
         }
         return card;
@@ -114,12 +116,15 @@ export default function AdminPage() {
             field === "normal"
               ? value
               : cards.find((c) => c.id === id).hasNormal,
-          hasHolo:
-            field === "holo" ? value : cards.find((c) => c.id === id).hasHolo,
-          packNumber:
-            field === "packNumber"
+          hasHolofoil:
+            field === "holofoil"
               ? value
-              : cards.find((c) => c.id === id).packNumber,
+              : cards.find((c) => c.id === id).hasHolofoil,
+          hasReverseHolofoil:
+            field === "reverseHolofoil"
+              ? value
+              : cards.find((c) => c.id === id).hasReverseHolofoil,
+          packNumber: cards.find((c) => c.id === id).packNumber,
         }),
       });
 
@@ -196,6 +201,29 @@ export default function AdminPage() {
     }
   };
 
+  // Add bulk update function
+  const updateAllPrices = async () => {
+    try {
+      setBulkUpdating(true);
+      const response = await fetch("/api/updatePrices", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update prices");
+      }
+
+      const data = await response.json();
+      await mutate();
+      alert(`Successfully updated ${data.updatedCards.length} cards!`);
+    } catch (error) {
+      console.error("Error updating prices:", error);
+      alert("Failed to update prices: " + error.message);
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
   // Add card to sidebar
   const addToSidebar = (card) => {
     if (!sidebarCards.some((c) => c.id === card.id)) {
@@ -237,9 +265,13 @@ export default function AdminPage() {
   const filteredCards = cards.filter((card) => {
     const collectionFiltered =
       filter === "owned"
-        ? card.hasNormal || (card.reverseHoloAvg1 > 0 && card.hasHolo)
+        ? (card.variant1 === "normal" ? card.hasNormal : card.hasHolo) ||
+          (card.variant2 &&
+            (card.variant2 === "normal" ? card.hasNormal : card.hasHolo))
         : filter === "needed"
-        ? !card.hasNormal || (card.reverseHoloAvg1 > 0 && !card.hasHolo)
+        ? !(card.variant1 === "normal" ? card.hasNormal : card.hasHolo) ||
+          (card.variant2 &&
+            !(card.variant2 === "normal" ? card.hasNormal : card.hasHolo))
         : true;
 
     const searchLower = searchText.toLowerCase().trim();
@@ -269,20 +301,34 @@ export default function AdminPage() {
 
   // Calculate collection statistics
   const totalPossibleCards = cards.reduce((total, card) => {
-    return total + (card.reverseHoloAvg1 > 0 ? 2 : 1);
+    return total + (card.variant2 ? 2 : 1);
   }, 0);
 
   const cardsOwned = cards.reduce((total, card) => {
-    if (card.reverseHoloAvg1 > 0) {
-      return total + (card.hasNormal ? 1 : 0) + (card.hasHolo ? 1 : 0);
+    let count = 0;
+    if (card.variant1 === "normal" && card.hasNormal) count++;
+    if (card.variant1 !== "normal" && card.hasHolo) count++;
+    if (card.variant2) {
+      if (card.variant2 === "normal" && card.hasNormal) count++;
+      if (card.variant2 !== "normal" && card.hasHolo) count++;
     }
-    return total + (card.hasNormal ? 1 : 0);
+    return total + count;
   }, 0);
 
   const collectionValue = cards.reduce((total, card) => {
     let value = 0;
-    if (card.hasNormal) value += card.price;
-    if (card.hasHolo && card.reverseHoloAvg1 > 0) value += card.reverseHoloAvg1;
+    if (card.variant1 === "normal" && card.hasNormal) value += card.price1;
+    if (card.variant1 === "holofoil" && card.hasHolofoil) value += card.price1;
+    if (card.variant1 === "reverseHolofoil" && card.hasReverseHolofoil)
+      value += card.price1;
+
+    if (card.variant2) {
+      if (card.variant2 === "normal" && card.hasNormal) value += card.price2;
+      if (card.variant2 === "holofoil" && card.hasHolofoil)
+        value += card.price2;
+      if (card.variant2 === "reverseHolofoil" && card.hasReverseHolofoil)
+        value += card.price2;
+    }
     return total + value;
   }, 0);
 
@@ -357,7 +403,7 @@ export default function AdminPage() {
           </div>
 
           <div
-            className={`w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg max-w-[2000px] ${
+            className={`w-full grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg max-w-[2000px] ${
               !sidebarVisible ? "mx-auto px-4" : ""
             }`}
           >
@@ -381,6 +427,20 @@ export default function AdminPage() {
               <p className="text-3xl font-bold text-purple-500">
                 {cards.length}
               </p>
+            </div>
+            <div className="text-center flex flex-col items-center justify-center">
+              <h2 className="text-xl font-bold">Price Updates</h2>
+              <button
+                onClick={updateAllPrices}
+                disabled={bulkUpdating}
+                className={`mt-2 px-4 py-2 rounded-md text-white transition-colors ${
+                  bulkUpdating
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }`}
+              >
+                {bulkUpdating ? "Updating..." : "Update All Prices"}
+              </button>
             </div>
           </div>
 
@@ -406,13 +466,27 @@ export default function AdminPage() {
               >
                 <div
                   className={`flex flex-col border-2 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
-                    card.reverseHoloAvg1 > 0
-                      ? card.hasNormal && card.hasHolo
+                    card.variant2
+                      ? (card.variant1 === "normal"
+                          ? card.hasNormal
+                          : card.hasHolo) &&
+                        (card.variant2 === "normal"
+                          ? card.hasNormal
+                          : card.hasHolo)
                         ? "border-green-500"
-                        : card.hasNormal || card.hasHolo
+                        : (card.variant1 === "normal"
+                            ? card.hasNormal
+                            : card.hasHolo) ||
+                          (card.variant2 === "normal"
+                            ? card.hasNormal
+                            : card.hasHolo)
                         ? "border-blue-500"
                         : "border-gray-200"
-                      : card.hasNormal
+                      : card.variant1 === "normal"
+                      ? card.hasNormal
+                        ? "border-green-500"
+                        : "border-gray-200"
+                      : card.hasHolo
                       ? "border-green-500"
                       : "border-gray-200"
                   }`}
@@ -454,17 +528,27 @@ export default function AdminPage() {
                     <div className="space-y-4 text-sm flex-1 flex flex-col justify-end">
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between gap-4 border-b border-gray-700/50 pb-2">
-                          <span className="text-gray-400">Normal:</span>
+                          <span className="text-gray-400">
+                            {card.variant1}:
+                          </span>
                           <div className="flex items-center gap-3">
-                            <span className="tabular-nums">${card.price}</span>
+                            <span className="tabular-nums">${card.price1}</span>
                             <label className="flex items-center gap-1.5 min-w-[70px]">
                               <input
                                 type="checkbox"
-                                checked={card.hasNormal || false}
+                                checked={
+                                  card.variant1 === "normal"
+                                    ? card.hasNormal
+                                    : card.variant1 === "holofoil"
+                                    ? card.hasHolofoil
+                                    : card.variant1 === "reverseHolofoil"
+                                    ? card.hasReverseHolofoil
+                                    : false
+                                }
                                 onChange={(e) =>
                                   handleCollectionUpdate(
                                     card.id,
-                                    "normal",
+                                    card.variant1, // Pass the actual variant type
                                     e.target.checked
                                   )
                                 }
@@ -474,21 +558,31 @@ export default function AdminPage() {
                             </label>
                           </div>
                         </div>
-                        {card.reverseHoloAvg1 > 0 && (
+                        {card.variant2 && (
                           <div className="flex items-center justify-between gap-4 border-b border-gray-700/50 pb-2">
-                            <span className="text-gray-400">Holo:</span>
+                            <span className="text-gray-400">
+                              {card.variant2}:
+                            </span>
                             <div className="flex items-center gap-3">
                               <span className="tabular-nums">
-                                ${card.reverseHoloAvg1}
+                                ${card.price2}
                               </span>
                               <label className="flex items-center gap-1.5 min-w-[70px]">
                                 <input
                                   type="checkbox"
-                                  checked={card.hasHolo || false}
+                                  checked={
+                                    card.variant2 === "normal"
+                                      ? card.hasNormal
+                                      : card.variant2 === "holofoil"
+                                      ? card.hasHolofoil
+                                      : card.variant2 === "reverseHolofoil"
+                                      ? card.hasReverseHolofoil
+                                      : false
+                                  }
                                   onChange={(e) =>
                                     handleCollectionUpdate(
                                       card.id,
-                                      "holo",
+                                      card.variant2, // Pass the actual variant type
                                       e.target.checked
                                     )
                                   }
@@ -684,13 +778,17 @@ export default function AdminPage() {
                     <div className="space-y-1">
                       <div className="grid grid-cols-2 gap-x-2">
                         <p className="truncate">
-                          <span className="text-gray-400 mr-1">Normal:</span>$
-                          {card.price}
+                          <span className="text-gray-400 mr-1">
+                            {card.variant1}:
+                          </span>
+                          ${card.price1}
                         </p>
-                        {card.reverseHoloAvg1 > 0 && (
+                        {card.variant2 && (
                           <p className="truncate">
-                            <span className="text-gray-400 mr-1">Holo:</span>$
-                            {card.reverseHoloAvg1}
+                            <span className="text-gray-400 mr-1">
+                              {card.variant2}:
+                            </span>
+                            ${card.price2}
                           </p>
                         )}
                       </div>
@@ -706,7 +804,7 @@ export default function AdminPage() {
                             Normal
                           </span>
                         )}
-                        {card.hasHolo && card.reverseHoloAvg1 > 0 && (
+                        {card.hasHolo && card.reverseHolofoil > 0 && (
                           <span className="inline-block text-[10px] leading-none px-1.5 py-1 bg-blue-700/30 border border-blue-600/50 rounded whitespace-nowrap">
                             Holo
                           </span>

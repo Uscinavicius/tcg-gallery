@@ -13,6 +13,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "dotenv": "^16.4.7",
     "next": "15.1.6",
+    "pokemontcgsdk": "^2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "swr": "^2.3.2"

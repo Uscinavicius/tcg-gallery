@@ -3,14 +3,28 @@ import { NextResponse } from "next/server";
 
 export async function PATCH(request, context) {
   try {
-    const { id } = await context.params;
-    const { hasNormal, hasHolo, packNumber } = await request.json();
-    console.log("Updating card:", { id, hasNormal, hasHolo, packNumber });
+    const { id } = context.params;
+    const { hasNormal, hasHolofoil, hasReverseHolofoil, packNumber } =
+      await request.json();
+    console.log("Updating card:", {
+      id,
+      hasNormal,
+      hasHolofoil,
+      hasReverseHolofoil,
+      packNumber,
+    });
 
     // Validate input
-    if (typeof hasNormal !== "boolean" || typeof hasHolo !== "boolean") {
+    if (
+      typeof hasNormal !== "boolean" ||
+      typeof hasHolofoil !== "boolean" ||
+      typeof hasReverseHolofoil !== "boolean"
+    ) {
       return NextResponse.json(
-        { error: "hasNormal and hasHolo must be boolean values" },
+        {
+          error:
+            "hasNormal, hasHolofoil, and hasReverseHolofoil must be boolean values",
+        },
         { status: 400 }
       );
     }
@@ -23,12 +37,11 @@ export async function PATCH(request, context) {
     }
 
     const updatedCard = await prisma.card.update({
-      where: {
-        id: id,
-      },
+      where: { id },
       data: {
         hasNormal,
-        hasHolo,
+        hasHolofoil,
+        hasReverseHolofoil,
         packNumber,
       },
     });

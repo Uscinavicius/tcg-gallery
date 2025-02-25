@@ -155,21 +155,68 @@ export default function Home() {
 
   const filteredCards = cards.filter((card) => {
     if (filter === "owned") {
-      return card.hasNormal || (card.reverseHoloAvg1 > 0 && card.hasHolo);
+      const hasVariant1 =
+        card.variant1 === "normal"
+          ? card.hasNormal
+          : card.variant1 === "holofoil"
+          ? card.hasHolofoil
+          : card.variant1 === "reverseHolofoil"
+          ? card.hasReverseHolofoil
+          : false;
+
+      const hasVariant2 = card.variant2
+        ? card.variant2 === "normal"
+          ? card.hasNormal
+          : card.variant2 === "holofoil"
+          ? card.hasHolofoil
+          : card.variant2 === "reverseHolofoil"
+          ? card.hasReverseHolofoil
+          : false
+        : false;
+
+      return hasVariant1 || hasVariant2;
     } else if (filter === "needed") {
-      return !card.hasNormal || (card.reverseHoloAvg1 > 0 && !card.hasHolo);
+      const needsVariant1 =
+        card.variant1 === "normal"
+          ? !card.hasNormal
+          : card.variant1 === "holofoil"
+          ? !card.hasHolofoil
+          : card.variant1 === "reverseHolofoil"
+          ? !card.hasReverseHolofoil
+          : false;
+
+      const needsVariant2 = card.variant2
+        ? card.variant2 === "normal"
+          ? !card.hasNormal
+          : card.variant2 === "holofoil"
+          ? !card.hasHolofoil
+          : card.variant2 === "reverseHolofoil"
+          ? !card.hasReverseHolofoil
+          : false
+        : false;
+
+      return needsVariant1 || needsVariant2;
     }
     return true;
   });
 
   const totalPossibleCards = cards.reduce((total, card) => {
-    return total + (card.reverseHoloAvg1 > 0 ? 2 : 1);
+    return total + (card.variant2 ? 2 : 1);
   }, 0);
+
   const cardsOwned = cards.reduce((total, card) => {
-    if (card.reverseHoloAvg1 > 0) {
-      return total + (card.hasNormal ? 1 : 0) + (card.hasHolo ? 1 : 0);
+    let count = 0;
+    if (card.variant1 === "normal" && card.hasNormal) count++;
+    if (card.variant1 === "holofoil" && card.hasHolofoil) count++;
+    if (card.variant1 === "reverseHolofoil" && card.hasReverseHolofoil) count++;
+
+    if (card.variant2) {
+      if (card.variant2 === "normal" && card.hasNormal) count++;
+      if (card.variant2 === "holofoil" && card.hasHolofoil) count++;
+      if (card.variant2 === "reverseHolofoil" && card.hasReverseHolofoil)
+        count++;
     }
-    return total + (card.hasNormal ? 1 : 0);
+    return total + count;
   }, 0);
 
   return (
@@ -232,13 +279,34 @@ export default function Home() {
                 >
                   <div
                     className={`flex flex-col border-2 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
-                      card.reverseHoloAvg1 > 0
-                        ? card.hasNormal && card.hasHolo
+                      card.variant2
+                        ? ((card.variant1 === "normal" && card.hasNormal) ||
+                            (card.variant1 === "holofoil" &&
+                              card.hasHolofoil) ||
+                            (card.variant1 === "reverseHolofoil" &&
+                              card.hasReverseHolofoil)) &&
+                          ((card.variant2 === "normal" && card.hasNormal) ||
+                            (card.variant2 === "holofoil" &&
+                              card.hasHolofoil) ||
+                            (card.variant2 === "reverseHolofoil" &&
+                              card.hasReverseHolofoil))
                           ? "border-green-500"
-                          : card.hasNormal || card.hasHolo
+                          : (card.variant1 === "normal" && card.hasNormal) ||
+                            (card.variant1 === "holofoil" &&
+                              card.hasHolofoil) ||
+                            (card.variant1 === "reverseHolofoil" &&
+                              card.hasReverseHolofoil) ||
+                            (card.variant2 === "normal" && card.hasNormal) ||
+                            (card.variant2 === "holofoil" &&
+                              card.hasHolofoil) ||
+                            (card.variant2 === "reverseHolofoil" &&
+                              card.hasReverseHolofoil)
                           ? "border-blue-500"
                           : "border-gray-200"
-                        : card.hasNormal
+                        : (card.variant1 === "normal" && card.hasNormal) ||
+                          (card.variant1 === "holofoil" && card.hasHolofoil) ||
+                          (card.variant1 === "reverseHolofoil" &&
+                            card.hasReverseHolofoil)
                         ? "border-green-500"
                         : "border-gray-200"
                     }`}
@@ -262,27 +330,65 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col gap-1.5 mt-auto pt-3">
                         <p className="text-sm">
-                          {card.hasNormal && (
+                          {card.variant1 === "normal" ? (
+                            card.hasNormal ? (
+                              <span className="text-green-600">
+                                ✓ Have Normal
+                              </span>
+                            ) : (
+                              <span className="text-red-600">
+                                ✗ Missing Normal
+                              </span>
+                            )
+                          ) : card.variant1 === "holofoil" ? (
+                            card.hasHolofoil ? (
+                              <span className="text-green-600">
+                                ✓ Have Holofoil
+                              </span>
+                            ) : (
+                              <span className="text-red-600">
+                                ✗ Missing Holofoil
+                              </span>
+                            )
+                          ) : card.hasReverseHolofoil ? (
                             <span className="text-green-600">
-                              ✓ Have Normal
+                              ✓ Have Reverse Holofoil
                             </span>
-                          )}
-                          {!card.hasNormal && (
+                          ) : (
                             <span className="text-red-600">
-                              ✗ Missing Normal
+                              ✗ Missing Reverse Holofoil
                             </span>
                           )}
                         </p>
-                        {card.reverseHoloAvg1 > 0 && (
+                        {card.variant2 && (
                           <p className="text-sm">
-                            {card.hasHolo && (
+                            {card.variant2 === "normal" ? (
+                              card.hasNormal ? (
+                                <span className="text-green-600">
+                                  ✓ Have Normal
+                                </span>
+                              ) : (
+                                <span className="text-red-600">
+                                  ✗ Missing Normal
+                                </span>
+                              )
+                            ) : card.variant2 === "holofoil" ? (
+                              card.hasHolofoil ? (
+                                <span className="text-green-600">
+                                  ✓ Have Holofoil
+                                </span>
+                              ) : (
+                                <span className="text-red-600">
+                                  ✗ Missing Holofoil
+                                </span>
+                              )
+                            ) : card.hasReverseHolofoil ? (
                               <span className="text-green-600">
-                                ✓ Have Holo
+                                ✓ Have Reverse Holofoil
                               </span>
-                            )}
-                            {!card.hasHolo && (
+                            ) : (
                               <span className="text-red-600">
-                                ✗ Missing Holo
+                                ✗ Missing Reverse Holofoil
                               </span>
                             )}
                           </p>
@@ -301,7 +407,8 @@ export default function Home() {
                     <th className="text-left py-3 px-4">Number</th>
                     <th className="text-left py-3 px-4">Name</th>
                     <th className="text-left py-3 px-4">Normal</th>
-                    <th className="text-left py-3 px-4">Holo</th>
+                    <th className="text-left py-3 px-4">Holofoil</th>
+                    <th className="text-left py-3 px-4">Reverse Holofoil</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -313,15 +420,33 @@ export default function Home() {
                       <td className="py-3 px-4">#{card.number}</td>
                       <td className="py-3 px-4">{card.name}</td>
                       <td className="py-3 px-4">
-                        {card.hasNormal ? (
-                          <span className="text-green-600">✓</span>
+                        {card.variant1 === "normal" ||
+                        card.variant2 === "normal" ? (
+                          card.hasNormal ? (
+                            <span className="text-green-600">✓</span>
+                          ) : (
+                            <span className="text-red-600">✗</span>
+                          )
                         ) : (
-                          <span className="text-red-600">✗</span>
+                          <span className="text-gray-500">-</span>
                         )}
                       </td>
                       <td className="py-3 px-4">
-                        {card.reverseHoloAvg1 > 0 ? (
-                          card.hasHolo ? (
+                        {card.variant1 === "holofoil" ||
+                        card.variant2 === "holofoil" ? (
+                          card.hasHolofoil ? (
+                            <span className="text-green-600">✓</span>
+                          ) : (
+                            <span className="text-red-600">✗</span>
+                          )
+                        ) : (
+                          <span className="text-gray-500">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        {card.variant1 === "reverseHolofoil" ||
+                        card.variant2 === "reverseHolofoil" ? (
+                          card.hasReverseHolofoil ? (
                             <span className="text-green-600">✓</span>
                           ) : (
                             <span className="text-red-600">✗</span>

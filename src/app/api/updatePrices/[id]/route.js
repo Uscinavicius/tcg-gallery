@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import pokemon from "@/lib/pokemonTcg";
 
 export async function POST(request, context) {
   try {
@@ -8,30 +9,51 @@ export async function POST(request, context) {
 
     console.log("Updating single card price:", { id, number });
 
-    // Fetch the card data from Pokemon TCG API
-    const response = await fetch(
-      `https://api.pokemontcg.io/v2/cards?q=number:${number} set.id:sv7`
-    );
+    const cards = await pokemon.card.where({
+      q: `number:${number} set.id:sv7`,
+    });
 
-    if (!response.ok) {
-      throw new Error(`Pokemon TCG API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log("API response:", data);
-
-    if (!data.data?.[0]?.cardmarket?.prices) {
+    if (!cards.data?.[0]?.tcgplayer?.prices) {
       throw new Error("No price data available for this card");
     }
 
-    const tcgCard = data.data[0];
+    const tcgCard = cards.data[0];
+    const prices = tcgCard.tcgplayer.prices;
 
-    // Update the card in the database
+    // Collect all available variants with their prices
+    const variants = [];
+
+    if (prices.normal?.market || prices.normal?.mid) {
+      variants.push({
+        type: "normal",
+        price: prices.normal.market || prices.normal.mid,
+      });
+    }
+
+    if (prices.holofoil?.market || prices.holofoil?.mid) {
+      variants.push({
+        type: "holofoil",
+        price: prices.holofoil.market || prices.holofoil.mid,
+      });
+    }
+
+    if (prices.reverseHolofoil?.market || prices.reverseHolofoil?.mid) {
+      variants.push({
+        type: "reverseHolofoil",
+        price: prices.reverseHolofoil.market || prices.reverseHolofoil.mid,
+      });
+    }
+
+    // Sort variants by price
+    variants.sort((a, b) => a.price - b.price);
+
     const updatedCard = await prisma.card.update({
       where: { id },
       data: {
-        price: tcgCard.cardmarket.prices.averageSellPrice || 0,
-        reverseHoloAvg1: tcgCard.cardmarket.prices.reverseHoloAvg1 || 0,
+        price1: variants[0]?.price || 0,
+        variant1: variants[0]?.type || "normal",
+        price2: variants[1]?.price || 0,
+        variant2: variants[1]?.type || null,
         lastPriceUpdate: new Date(),
       },
     });

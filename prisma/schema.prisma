@@ -14,15 +14,18 @@ datasource db {
 }
 
 model Card {
-  id                    String  @id @default(uuid())
-  name                  String
-  number                String  @unique
-  rarity                String
-  price                 Float   @default(0.0)
-  reverseHoloAvg1       Float   @default(0.0)
-  imageUrl              String
-  hasNormal             Boolean @default(false)
-  hasHolo               Boolean @default(false)
-  lastPriceUpdate       DateTime @default(now())
-  packNumber            Int?
+  id                String    @id @default(uuid())
+  name              String
+  number            String    @unique
+  imageUrl          String
+  rarity            String
+  price1            Float     @default(0)
+  variant1          String    @default("normal")     // "normal", "holofoil", or "reverseHolofoil"
+  price2            Float     @default(0)
+  variant2          String?                          // "holofoil" or "reverseHolofoil"
+  hasNormal         Boolean   @default(false)
+  hasHolofoil       Boolean   @default(false)        // specifically for holofoil variants
+  hasReverseHolofoil Boolean  @default(false)        // specifically for reverse holofoil variants
+  packNumber        Int?
+  lastPriceUpdate   DateTime?
 }
