@@ -68,28 +68,50 @@ export default function AdminPage() {
   const [updating, setUpdating] = useState({});
   const [bulkUpdating, setBulkUpdating] = useState(false); // Add this state
   const [searchText, setSearchText] = useState("");
+  const [selectedSet, setSelectedSet] = useState("all"); // Add state for selected set
   const [sidebarCards, setSidebarCards] = useState([]);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [currentSidebarPage, setCurrentSidebarPage] = useState(1);
   const cardsPerPage = 24; // Increased from 16 to 24 for better use of space
-  const { data: cards, error, mutate } = useSWR("/api/cards", fetcher);
+
+  // Get available sets
+  const { data: sets, error: setsError } = useSWR("/api/sets", fetcher);
+
+  // Modify the cards fetch URL to include the selected set as a query parameter
+  const cardsUrl =
+    selectedSet && selectedSet !== "all"
+      ? `/api/cards?setId=${selectedSet}`
+      : "/api/cards";
+
+  const { data: cards, error, mutate } = useSWR(cardsUrl, fetcher);
+
 
   // Load sidebar cards and visibility state from localStorage on initial render
   useEffect(() => {
     const savedCards = localStorage.getItem("sidebarCards");
     const savedVisibility = localStorage.getItem("sidebarVisible");
+    const savedSet = localStorage.getItem("selectedSet");
+
     if (savedCards) {
       setSidebarCards(JSON.parse(savedCards));
     }
     if (savedVisibility) {
       setSidebarVisible(JSON.parse(savedVisibility));
     }
+    if (savedSet) {
+      setSelectedSet(savedSet);
+    }
   }, []);
 
-  // Save sidebar visibility state to localStorage
+  // Save sidebar visibility and selected set to localStorage
   useEffect(() => {
     localStorage.setItem("sidebarVisible", JSON.stringify(sidebarVisible));
-  }, [sidebarVisible]);
+    localStorage.setItem("selectedSet", selectedSet);
+  }, [sidebarVisible, selectedSet]);
+
+  const handleSetChange = (e) => {
+    setSelectedSet(e.target.value);
+  };
 
   const handleCollectionUpdate = async (id, field, value) => {
     try {
@@ -215,7 +237,13 @@ export default function AdminPage() {
 
       const data = await response.json();
       await mutate();
-      alert(`Successfully updated ${data.updatedCards.length} cards!`);
+
+      // Format the results into a readable message
+      const resultMessage = data.results
+        .map(result => `${result.set}: ${result.updatedCards}/${result.totalCards} cards`)
+        .join('\n');
+
+      alert(`Price update complete!\n\nTotal cards updated: ${data.results.reduce((sum, r) => sum + r.updatedCards, 0)}\n\nDetails:\n${resultMessage}`);
     } catch (error) {
       console.error("Error updating prices:", error);
       alert("Failed to update prices: " + error.message);
@@ -259,8 +287,9 @@ export default function AdminPage() {
     }
   };
 
-  if (error) return <div>Failed to load</div>;
-  if (!cards) return <LoadingSkeleton />;
+  if (error) return <div>Failed to load cards</div>;
+  if (setsError) return <div>Failed to load card sets</div>;
+  if (!cards || !sets) return <LoadingSkeleton />;
 
   const filteredCards = cards.filter((card) => {
     const hasVariant1 =
@@ -400,6 +429,20 @@ export default function AdminPage() {
                 className="px-4 py-2 border rounded-md bg-inherit min-w-[200px]"
               />
               <select
+                value={selectedSet}
+                onChange={handleSetChange}
+                className="px-4 py-2 border rounded-md bg-inherit"
+              >
+                <option value="all" className="bg-black">
+                  All Sets
+                </option>
+                {sets.map((set) => (
+                  <option key={set.id} value={set.id} className="bg-black">
+                    {set.name}
+                  </option>
+                ))}
+              </select>
+              <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="px-4 py-2 border rounded-md bg-inherit"
@@ -457,6 +500,10 @@ export default function AdminPage() {
               <p className="text-3xl font-bold text-purple-500">
                 {cards.length}
               </p>
+              <p className="text-sm text-gray-400">
+                {selectedSet !== "all" &&
+                  (sets.find((s) => s.id === selectedSet)?.name || "All Sets")}
+              </p>
             </div>
             <div className="text-center flex flex-col items-center justify-center">
               <h2 className="text-xl font-bold">Price Updates</h2>
@@ -478,6 +525,8 @@ export default function AdminPage() {
             Showing {sortedCards.length}{" "}
             {sortedCards.length === 1 ? "card" : "cards"}
             {searchText && ` matching "${searchText}"`}
+            {selectedSet !== "all" &&
+              ` in set "${sets.find((s) => s.id === selectedSet)?.name}"`}
           </div>
 
           <div
@@ -547,8 +596,9 @@ export default function AdminPage() {
                   </button>
 
                   <div className="space-y-3 flex-1 flex flex-col">
-                    <div className="text-xs font-bold text-gray-400">
-                      #{card.number}
+                    <div className="text-xs font-bold flex justify-between">
+                      <span className="text-gray-400">#{card.number}</span>
+                      <span className="text-gray-400">{card.setId}</span>
                     </div>
                     <Image
                       src={card.imageUrl}

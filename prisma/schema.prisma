@@ -16,7 +16,8 @@ datasource db {
 model Card {
   id                String    @id @default(uuid())
   name              String
-  number            String    @unique
+  number            String
+  setId             String    @default("base")   // Set identifier (e.g., "base", "paldean_fates")
   imageUrl          String
   rarity            String
   price1            Float     @default(0)
@@ -28,4 +29,14 @@ model Card {
   hasReverseHolofoil Boolean  @default(false)        // specifically for reverse holofoil variants
   packNumber        Int?
   lastPriceUpdate   DateTime?
+
+  @@unique([number, setId])  // Ensure number is unique within a set
+}
+
+model Set {
+  id          String   @id                       // Set identifier (e.g., "base", "paldean_fates")
+  name        String                             // Display name (e.g., "Base Set", "Paldean Fates")
+  code        String?                            // Official set code (e.g., "sv4pt5" for Paldean Fates)
+  releaseDate DateTime @default(now())
+  isActive    Boolean  @default(true)
 }

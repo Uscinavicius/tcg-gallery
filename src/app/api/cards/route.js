@@ -1,9 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    // Get the setId from the URL query parameter
+    const url = new URL(request.url);
+    const setId = url.searchParams.get("setId");
+
+    let whereClause = {};
+
+    // If a setId is provided, filter by it
+    if (setId) {
+      whereClause.setId = setId;
+    }
+
     const cards = await prisma.card.findMany({
+      where: whereClause,
       orderBy: {
         number: "asc",
       },

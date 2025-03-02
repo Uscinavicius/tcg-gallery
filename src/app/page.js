@@ -119,11 +119,19 @@ export default function Home() {
   const [filter, setFilter] = useState("all");
   const [viewType, setViewType] = useState("card");
   const [isAdmin, setIsAdmin] = useState(false);
-  const { data: cards, error } = useSWR("/api/cards", fetcher, {
-    refreshInterval: 0,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-  });
+  const [searchText, setSearchText] = useState("");
+  const [selectedSet, setSelectedSet] = useState("stellar_crown"); // Default to Stellar Crown
+
+  // Get cards based on selected set
+  const { data: cards, error } = useSWR(
+    `/api/cards?setId=${selectedSet}`,
+    fetcher,
+    {
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -136,7 +144,6 @@ export default function Home() {
         console.error("Auth check failed:", err);
       }
     };
-
     checkAuth();
   }, []);
 
@@ -154,6 +161,7 @@ export default function Home() {
   }
 
   const filteredCards = cards.filter((card) => {
+    // Collection status filtering
     const hasVariant1 =
       card.variant1 === "normal"
         ? card.hasNormal
@@ -173,12 +181,21 @@ export default function Home() {
         : false
       : false;
 
-    if (filter === "owned") {
-      return hasVariant1 || hasVariant2;
-    } else if (filter === "needed") {
-      return !hasVariant1 || (card.variant2 && !hasVariant2);
-    }
-    return true;
+    const collectionFiltered = 
+      filter === "owned"
+        ? hasVariant1 || hasVariant2
+        : filter === "needed"
+        ? !hasVariant1 || (card.variant2 && !hasVariant2)
+        : true;
+
+    // Search text filtering
+    const searchLower = searchText.toLowerCase().trim();
+    const matchesSearch =
+      searchLower === "" ||
+      card.name.toLowerCase().includes(searchLower) ||
+      card.number.toLowerCase().includes(searchLower);
+
+    return collectionFiltered && matchesSearch;
   });
 
   const totalPossibleCards = cards.reduce((total, card) => {
@@ -231,26 +248,33 @@ export default function Home() {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              <input
+                type="text"
+                placeholder="Search by name or number..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="px-4 py-2 border rounded-md bg-inherit min-w-[200px]"
+              />
+              <select
+                value={selectedSet}
+                onChange={(e) => setSelectedSet(e.target.value)}
+                className="px-4 py-2 border rounded-md bg-inherit"
+              >
+                <option value="stellar_crown" className="bg-black">Stellar Crown</option>
+                <option value="paldean_fates" className="bg-black">Paldean Fates</option>
+              </select>
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="px-4 py-2 border rounded-md bg-inherit"
               >
-                <option value="all" className="bg-black">
-                  All Cards
-                </option>
-                <option value="owned" className="bg-black">
-                  Owned Cards
-                </option>
-                <option value="needed" className="bg-black">
-                  Needed Cards
-                </option>
+                <option value="all" className="bg-black">All Cards</option>
+                <option value="owned" className="bg-black">Owned Cards</option>
+                <option value="needed" className="bg-black">Needed Cards</option>
               </select>
               <button
-                onClick={() =>
-                  setViewType(viewType === "card" ? "list" : "card")
-                }
+                onClick={() => setViewType(viewType === "card" ? "list" : "card")}
                 className="px-4 py-2 border rounded-md hover:bg-gray-800 transition-colors"
               >
                 {viewType === "card" ? "List View" : "Card View"}
@@ -260,6 +284,8 @@ export default function Home() {
           <div className="w-full text-sm text-gray-500 max-w-[2000px] mx-auto px-4">
             Showing {filteredCards.length}{" "}
             {filteredCards.length === 1 ? "card" : "cards"}
+            {searchText && ` matching "${searchText}"`}
+            {` from ${selectedSet === "stellar_crown" ? "Stellar Crown" : "Paldean Fates"}`}
           </div>
 
           {viewType === "card" ? (
