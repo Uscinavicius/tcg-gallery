@@ -123,6 +123,7 @@ export default function AdminPage() {
             hasHolofoil: field === "holofoil" ? value : card.hasHolofoil,
             hasReverseHolofoil:
               field === "reverseHolofoil" ? value : card.hasReverseHolofoil,
+            packNumber: field === "packNumber" ? value : card.packNumber,
           };
         }
         return card;
@@ -146,7 +147,10 @@ export default function AdminPage() {
             field === "reverseHolofoil"
               ? value
               : cards.find((c) => c.id === id).hasReverseHolofoil,
-          packNumber: cards.find((c) => c.id === id).packNumber,
+          packNumber:
+            field === "packNumber"
+              ? value
+              : cards.find((c) => c.id === id).packNumber,
         }),
       });
 
