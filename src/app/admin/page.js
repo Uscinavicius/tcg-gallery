@@ -85,7 +85,6 @@ export default function AdminPage() {
 
   const { data: cards, error, mutate } = useSWR(cardsUrl, fetcher);
 
-
   // Load sidebar cards and visibility state from localStorage on initial render
   useEffect(() => {
     const savedCards = localStorage.getItem("sidebarCards");
@@ -244,10 +243,18 @@ export default function AdminPage() {
 
       // Format the results into a readable message
       const resultMessage = data.results
-        .map(result => `${result.set}: ${result.updatedCards}/${result.totalCards} cards`)
-        .join('\n');
+        .map(
+          (result) =>
+            `${result.set}: ${result.updatedCards}/${result.totalCards} cards`
+        )
+        .join("\n");
 
-      alert(`Price update complete!\n\nTotal cards updated: ${data.results.reduce((sum, r) => sum + r.updatedCards, 0)}\n\nDetails:\n${resultMessage}`);
+      alert(
+        `Price update complete!\n\nTotal cards updated: ${data.results.reduce(
+          (sum, r) => sum + r.updatedCards,
+          0
+        )}\n\nDetails:\n${resultMessage}`
+      );
     } catch (error) {
       console.error("Error updating prices:", error);
       alert("Failed to update prices: " + error.message);
@@ -320,6 +327,8 @@ export default function AdminPage() {
         ? hasVariant1 || hasVariant2
         : filter === "needed"
         ? !hasVariant1 || (card.variant2 && !hasVariant2)
+        : filter === "referenced"
+        ? sidebarCards.some((refCard) => refCard.id === card.id)
         : true;
 
     const searchLower = searchText.toLowerCase().trim();
@@ -398,18 +407,12 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ paddingTop: "64px" }}>
       <div
-        className={`flex-1 flex flex-col ${
-          sidebarVisible
-            ? "md:pr-[650px] lg:pr-[650px] xl:pr-[650px] 2xl:pr-[650px]"
-            : ""
-        } max-w-[2400px] mx-auto w-full`}
+        className={`flex-1 flex flex-col max-w-full mx-auto w-full ${
+          sidebarVisible ? "mr-[800px]" : ""
+        }`}
       >
         <main className="flex flex-col gap-6 items-center p-3 sm:p-6 w-full">
-          <div
-            className={`w-full max-w-[2000px] ${
-              !sidebarVisible ? "mx-auto px-4" : ""
-            } flex justify-between items-center flex-wrap gap-4`}
-          >
+          <div className="w-full flex justify-between items-center flex-wrap gap-4 max-w-[2000px] px-4">
             <h1 className="text-4xl font-bold">Admin Dashboard</h1>
             <div className="flex gap-4 flex-wrap">
               <button
@@ -460,6 +463,9 @@ export default function AdminPage() {
                 <option value="needed" className="bg-black">
                   Needed Cards
                 </option>
+                <option value="referenced" className="bg-black">
+                  Referenced Cards
+                </option>
               </select>
               <select
                 value={sortBy}
@@ -479,11 +485,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div
-            className={`w-full grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg max-w-[2000px] ${
-              !sidebarVisible ? "mx-auto px-4" : ""
-            }`}
-          >
+          <div className="w-full grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8 bg-gray-800/50 p-4 rounded-lg max-w-[2000px] px-4">
             <div className="text-center">
               <h2 className="text-xl font-bold">Collection Progress</h2>
               <p className="text-3xl font-bold text-green-500">
@@ -525,7 +527,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="w-full text-sm text-gray-500">
+          <div className="w-full text-sm text-gray-500 max-w-[2000px] px-4">
             Showing {sortedCards.length}{" "}
             {sortedCards.length === 1 ? "card" : "cards"}
             {searchText && ` matching "${searchText}"`}
@@ -533,22 +535,14 @@ export default function AdminPage() {
               ` in set "${sets.find((s) => s.id === selectedSet)?.name}"`}
           </div>
 
-          <div
-            className={`grid grid-cols-1 sm:grid-cols-2 ${
-              sidebarVisible
-                ? "md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-                : "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
-            } gap-4 lg:gap-6 w-full ${
-              !sidebarVisible ? "max-w-[2000px] mx-auto px-4" : ""
-            } place-items-center`}
-          >
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 max-w-[2000px] px-4 place-items-center">
             {sortedCards.map((card) => (
               <div
                 key={card.id}
-                className="flex justify-center w-full h-[520px]"
+                className="flex justify-center w-full h-[650px]"
               >
                 <div
-                  className={`flex flex-col border-2 rounded-lg p-4 w-full max-w-[280px] h-full relative bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
+                  className={`flex flex-col border-2 rounded-lg p-6 w-full max-w-[340px] h-full relative bg-black/20 hover:bg-black/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
                     card.variant2
                       ? // If card has two variants, check if both are collected
                         ((card.variant1 === "normal" && card.hasNormal) ||
@@ -599,29 +593,31 @@ export default function AdminPage() {
                     {isInSidebar(card.id) ? "★" : "+"}
                   </button>
 
-                  <div className="space-y-3 flex-1 flex flex-col">
-                    <div className="text-xs font-bold flex justify-between">
+                  <div className="space-y-4 flex-1 flex flex-col">
+                    <div className="text-sm font-bold flex justify-between">
                       <span className="text-gray-400">#{card.number}</span>
                       <span className="text-gray-400">{card.setId}</span>
                     </div>
                     <Image
                       src={card.imageUrl}
                       alt={card.name}
-                      width={180}
-                      height={271}
+                      width={240}
+                      height={336}
                       className="mx-auto rounded-md"
                     />
-                    <h2 className="text-base font-bold truncate mb-4">
+                    <h2 className="text-lg font-bold truncate mt-2 mb-4">
                       {card.name}
                     </h2>
-                    <div className="space-y-4 text-sm flex-1 flex flex-col justify-end">
+                    <div className="space-y-4 text-base flex-1 flex flex-col justify-end">
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between gap-4 border-b border-gray-700/50 pb-2">
-                          <span className="text-gray-400">
+                          <span className="text-gray-400 min-w-[80px]">
                             {card.variant1}:
                           </span>
-                          <div className="flex items-center gap-3">
-                            <span className="tabular-nums">${card.price1}</span>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <span className="tabular-nums w-16 text-right">
+                              ${card.price1}
+                            </span>
                             <label className="flex items-center gap-1.5 min-w-[70px]">
                               <input
                                 type="checkbox"
@@ -637,7 +633,7 @@ export default function AdminPage() {
                                 onChange={(e) =>
                                   handleCollectionUpdate(
                                     card.id,
-                                    card.variant1, // Pass the actual variant type
+                                    card.variant1,
                                     e.target.checked
                                   )
                                 }
@@ -649,11 +645,11 @@ export default function AdminPage() {
                         </div>
                         {card.variant2 && (
                           <div className="flex items-center justify-between gap-4 border-b border-gray-700/50 pb-2">
-                            <span className="text-gray-400">
+                            <span className="text-gray-400 min-w-[80px]">
                               {card.variant2}:
                             </span>
-                            <div className="flex items-center gap-3">
-                              <span className="tabular-nums">
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="tabular-nums w-16 text-right">
                                 ${card.price2}
                               </span>
                               <label className="flex items-center gap-1.5 min-w-[70px]">
@@ -671,7 +667,7 @@ export default function AdminPage() {
                                   onChange={(e) =>
                                     handleCollectionUpdate(
                                       card.id,
-                                      card.variant2, // Pass the actual variant type
+                                      card.variant2,
                                       e.target.checked
                                     )
                                   }
@@ -704,19 +700,23 @@ export default function AdminPage() {
                               />
                             </div>
                           </div>
-                          <button
-                            onClick={() =>
-                              updateCardPrice(card.id, card.number)
-                            }
-                            disabled={updating[card.id]}
-                            className={`w-full px-2 py-1 text-xs bg-blue-500/80 text-white rounded-md whitespace-nowrap ${
-                              updating[card.id]
-                                ? "opacity-50 cursor-not-allowed"
-                                : "hover:bg-blue-600"
-                            }`}
-                          >
-                            {updating[card.id] ? "..." : "Update Price"}
-                          </button>
+                          <div className="flex justify-center w-full">
+                            <button
+                              onClick={() =>
+                                updateCardPrice(card.id, card.number)
+                              }
+                              disabled={updating[card.id]}
+                              className={`w-full px-4 py-1.5 text-xs bg-blue-500/80 text-white rounded-md whitespace-nowrap ${
+                                updating[card.id]
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "hover:bg-blue-600"
+                              }`}
+                            >
+                              {updating[card.id]
+                                ? "Updating..."
+                                : "Update Price"}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -730,7 +730,7 @@ export default function AdminPage() {
 
       {/* Sidebar */}
       <div
-        className={`w-[650px] md:w-[650px] lg:w-[650px] xl:w-[650px] 2xl:w-[650px] h-screen bg-gray-900/95 backdrop-blur-md fixed right-0 transition-transform ${
+        className={`w-[800px] h-screen bg-gray-900/95 backdrop-blur-md fixed right-0 transition-transform ${
           sidebarVisible ? "translate-x-0" : "translate-x-full"
         } shadow-xl border-l border-gray-800 z-20`}
         style={{ top: "64px", height: "calc(100vh - 64px)" }}
@@ -777,50 +777,52 @@ export default function AdminPage() {
                 </svg>
               </button>
             </div>
-          </div>
 
-          {/* Pagination controls in header */}
-          {sidebarCards.length > cardsPerPage && (
-            <div className="flex items-center justify-between mt-3 bg-gray-800/50 rounded-lg p-2">
-              <button
-                onClick={() => setCurrentSidebarPage((p) => Math.max(1, p - 1))}
-                disabled={currentSidebarPage === 1}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
-                  currentSidebarPage === 1
-                    ? "bg-gray-700/50 text-gray-500"
-                    : "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                }`}
-              >
-                Previous
-              </button>
-              <span className="text-sm">
-                Page {currentSidebarPage} of{" "}
-                {Math.ceil(sidebarCards.length / cardsPerPage)}
-              </span>
-              <button
-                onClick={() =>
-                  setCurrentSidebarPage((p) =>
-                    Math.min(
-                      Math.ceil(sidebarCards.length / cardsPerPage),
-                      p + 1
+            {/* Pagination controls in header */}
+            {sidebarCards.length > cardsPerPage && (
+              <div className="flex items-center justify-between mt-3 bg-gray-800/50 rounded-lg p-2">
+                <button
+                  onClick={() =>
+                    setCurrentSidebarPage((p) => Math.max(1, p - 1))
+                  }
+                  disabled={currentSidebarPage === 1}
+                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                    currentSidebarPage === 1
+                      ? "bg-gray-700/50 text-gray-500"
+                      : "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="text-sm">
+                  Page {currentSidebarPage} of{" "}
+                  {Math.ceil(sidebarCards.length / cardsPerPage)}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentSidebarPage((p) =>
+                      Math.min(
+                        Math.ceil(sidebarCards.length / cardsPerPage),
+                        p + 1
+                      )
                     )
-                  )
-                }
-                disabled={
-                  currentSidebarPage >=
-                  Math.ceil(sidebarCards.length / cardsPerPage)
-                }
-                className={`px-3 py-1.5 rounded-md transition-colors ${
-                  currentSidebarPage >=
-                  Math.ceil(sidebarCards.length / cardsPerPage)
-                    ? "bg-gray-700/50 text-gray-500"
-                    : "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          )}
+                  }
+                  disabled={
+                    currentSidebarPage >=
+                    Math.ceil(sidebarCards.length / cardsPerPage)
+                  }
+                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                    currentSidebarPage >=
+                    Math.ceil(sidebarCards.length / cardsPerPage)
+                      ? "bg-gray-700/50 text-gray-500"
+                      : "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Cards container */}
@@ -828,7 +830,7 @@ export default function AdminPage() {
           className="p-2 sm:p-3 overflow-y-auto"
           style={{ height: "calc(100% - 120px)" }}
         >
-          <div className="grid grid-cols-1 [&>*]:max-w-[350px] min-[750px]:grid-cols-2 min-[750px]:[&>*]:max-w-none gap-3 auto-rows-max">
+          <div className="grid grid-cols-1 [&>*]:max-w-[425px] min-[900px]:grid-cols-2 min-[900px]:[&>*]:max-w-none gap-3 auto-rows-max">
             {sidebarCards
               .slice(
                 (currentSidebarPage - 1) * cardsPerPage,
@@ -837,7 +839,7 @@ export default function AdminPage() {
               .map((card, index) => (
                 <div
                   key={card.id}
-                  className="relative border rounded-lg p-2 bg-gray-800/80 backdrop-blur-sm flex gap-2 min-w-0 overflow-hidden hover:bg-gray-800 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                  className="relative border rounded-lg p-3 bg-gray-800/80 backdrop-blur-sm flex gap-3 min-w-0 overflow-hidden hover:bg-gray-800 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                   style={{
                     animationDelay: `${index * 50}ms`,
                     animation: "slideIn 0.3s ease-out forwards",
@@ -845,7 +847,7 @@ export default function AdminPage() {
                 >
                   <button
                     onClick={() => removeFromSidebar(card.id)}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 z-10 shadow-md"
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 z-10 shadow-md"
                     title="Remove from sidebar"
                   >
                     ×
@@ -853,52 +855,78 @@ export default function AdminPage() {
                   <Image
                     src={card.imageUrl}
                     alt={card.name}
-                    width={65}
-                    height={91}
+                    width={85}
+                    height={119}
                     className="rounded flex-shrink-0"
                   />
-                  <div className="flex-1 min-w-0 text-xs space-y-1">
+                  <div className="flex-1 min-w-0 text-sm space-y-2">
                     <div className="flex items-start justify-between gap-1">
                       <p className="font-bold truncate flex-1">{card.name}</p>
                       <p className="text-gray-400 flex-shrink-0 text-right">
                         #{card.number}
                       </p>
                     </div>
-                    <div className="space-y-1">
-                      <div className="grid grid-cols-2 gap-x-2">
-                        <p className="truncate">
-                          <span className="text-gray-400 mr-1">
-                            {card.variant1}:
-                          </span>
-                          ${card.price1}
-                        </p>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-[auto_1fr] gap-2">
+                        <div className="text-gray-400">{card.variant1}:</div>
+                        <div
+                          className={`text-right font-mono ${
+                            (card.variant1 === "normal" && card.hasNormal) ||
+                            (card.variant1 === "holofoil" &&
+                              card.hasHolofoil) ||
+                            (card.variant1 === "reverseHolofoil" &&
+                              card.hasReverseHolofoil)
+                              ? "text-green-400"
+                              : "text-white"
+                          }`}
+                        >
+                          ${card.price1.toFixed(2)}
+                        </div>
                         {card.variant2 && (
-                          <p className="truncate">
-                            <span className="text-gray-400 mr-1">
+                          <>
+                            <div className="text-gray-400">
                               {card.variant2}:
-                            </span>
-                            ${card.price2}
-                          </p>
+                            </div>
+                            <div
+                              className={`text-right font-mono ${
+                                (card.variant2 === "normal" &&
+                                  card.hasNormal) ||
+                                (card.variant2 === "holofoil" &&
+                                  card.hasHolofoil) ||
+                                (card.variant2 === "reverseHolofoil" &&
+                                  card.hasReverseHolofoil)
+                                  ? "text-green-400"
+                                  : "text-white"
+                              }`}
+                            >
+                              ${card.price2.toFixed(2)}
+                            </div>
+                          </>
+                        )}
+                        {card.packNumber && (
+                          <>
+                            <div className="text-gray-400">Pack:</div>
+                            <div className="text-right">#{card.packNumber}</div>
+                          </>
                         )}
                       </div>
-                      {card.packNumber && (
-                        <p className="truncate">
-                          <span className="text-gray-400 mr-1">Pack:</span>#
-                          {card.packNumber}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5 pt-2">
                         {card.hasNormal && (
-                          <span className="inline-block text-[10px] leading-none px-1.5 py-1 bg-green-700/30 border border-green-600/50 rounded whitespace-nowrap">
+                          <span className="inline-block text-[11px] leading-none px-2 py-1 bg-green-700/30 border border-green-600/50 rounded whitespace-nowrap">
                             Normal
                           </span>
                         )}
-                        {card.hasHolo && card.reverseHolofoil > 0 && (
-                          <span className="inline-block text-[10px] leading-none px-1.5 py-1 bg-blue-700/30 border border-blue-600/50 rounded whitespace-nowrap">
+                        {card.hasHolofoil && (
+                          <span className="inline-block text-[11px] leading-none px-2 py-1 bg-blue-700/30 border border-blue-600/50 rounded whitespace-nowrap">
                             Holo
                           </span>
                         )}
-                        <span className="inline-block text-[10px] leading-none px-1.5 py-1 bg-purple-700/30 border border-purple-600/50 rounded whitespace-nowrap">
+                        {card.hasReverseHolofoil && (
+                          <span className="inline-block text-[11px] leading-none px-2 py-1 bg-purple-700/30 border border-purple-600/50 rounded whitespace-nowrap">
+                            Reverse Holo
+                          </span>
+                        )}
+                        <span className="inline-block text-[11px] leading-none px-2 py-1 bg-gray-700/30 border border-gray-600/50 rounded whitespace-nowrap">
                           {card.rarity}
                         </span>
                       </div>
